@@ -89,8 +89,6 @@ source .env.credentials && pnpm run test:integ
 
 webappはCloudFront経由のLambda上でLambda Web Adapter（レスポンスストリーミング）で動作。`next.config.ts` は `output: 'standalone'`。CDKが自動的にすべてのDockerイメージをビルドする — 事前ビルドやnpm installは不要。
 
-`apps/webapp/job.Dockerfile` は `src/jobs/*.ts` をesbuildで個別のLambdaハンドラーエントリーポイントとしてバンドルする。
-
 ### コード品質ツール
 
 - **oxlint**: lint + 型チェック（`--type-check` で `tsc --noEmit` を代替）
