@@ -2,7 +2,7 @@ import { IgnoreMode, Duration, Stack } from 'aws-cdk-lib';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { DockerImageFunction, Architecture } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
-import { parseDockerignore } from '../utils';
+
 import { CloudFrontLambdaFunctionUrlService } from './cf-lambda-furl-service/service';
 import { type IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { type Bucket } from 'aws-cdk-lib/aws-s3';
@@ -77,7 +77,6 @@ export class Webapp extends Construct {
       file: 'apps/webapp/Dockerfile',
       platform: Platform.LINUX_ARM64,
       ignoreMode: IgnoreMode.DOCKER,
-      exclude: parseDockerignore(join('..', '..', '.dockerignore')),
       tagPrefix: 'agentic-analyst-',
       buildArgs: {
         ALLOWED_ORIGIN_HOST: hostedZone ? `*.${hostedZone.zoneName}` : '*.cloudfront.net',

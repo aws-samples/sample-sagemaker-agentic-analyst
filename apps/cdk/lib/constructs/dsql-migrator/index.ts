@@ -7,7 +7,6 @@ import { Trigger } from 'aws-cdk-lib/triggers';
 import { type Database } from '../database';
 import { join } from 'path';
 import { ContainerImageBuild } from '@cdklabs/deploy-time-build';
-import { parseDockerignore } from '../../utils';
 
 export interface DsqlMigratorProps {
   readonly database: Database;
@@ -24,7 +23,6 @@ export class DsqlMigrator extends Construct {
       platform: Platform.LINUX_ARM64,
       file: 'packages/db/Dockerfile.migrator',
       ignoreMode: IgnoreMode.DOCKER,
-      exclude: parseDockerignore(join(__dirname, '..', '..', '..', '..', '..', '.dockerignore')),
     });
 
     const migrationRunner = new DockerImageFunction(this, 'Handler', {

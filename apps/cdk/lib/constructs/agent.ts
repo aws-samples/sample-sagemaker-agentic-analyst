@@ -25,7 +25,6 @@ import { join } from 'path';
 import { PolicyEngine } from './agentcore-policy';
 import { GatewayTracing } from './agentcore-gateway';
 import { type Database } from './database';
-import { parseDockerignore } from '../utils';
 
 export interface AgentProps {
   /** DataZoneドメインID */
@@ -334,7 +333,6 @@ export class Agent extends Construct {
       file: 'apps/chat-agent/Dockerfile',
       platform: Platform.LINUX_ARM64,
       ignoreMode: IgnoreMode.DOCKER,
-      exclude: parseDockerignore(join('..', '..', '.dockerignore')),
       tagPrefix: 'chat-agent-',
     });
 
