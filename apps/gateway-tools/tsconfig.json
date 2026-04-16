@@ -9,7 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "declaration": true,
-    "moduleResolution": "node"
+    "moduleResolution": "bundler"
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]

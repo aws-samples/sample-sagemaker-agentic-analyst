@@ -22,15 +22,15 @@
     "check:ci": "pnpm run lint:ci && pnpm run format:ci"
   },
   "dependencies": {
-    "@aws/aurora-dsql-node-postgres-connector": "^0",
-    "drizzle-orm": "^0.44",
-    "pg": "^8"
+    "@aws/aurora-dsql-node-postgres-connector": "^0.1.8",
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
-    "@types/pg": "^8",
+    "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
-    "tsx": "^4",
-    "typescript": "^5",
-    "vitest": "^3"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

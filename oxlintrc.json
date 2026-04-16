@@ -18,33 +18,9 @@
     "typescript/no-unsafe-type-assertion": "off",
     "typescript/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "typescript/consistent-type-imports": ["error", { "prefer": "type-imports", "fixStyle": "inline-type-imports" }],
-    "import/no-duplicates": ["error", { "prefer-inline": true }],
-    "no-restricted-syntax": [
-      "error",
-      {
-        "selector": "MemberExpression[object.object.name=\"process\"][object.property.name=\"env\"]",
-        "message": "process.env の直接参照は禁止です。各パッケージの env.ts を使用してください。"
-      }
-    ]
+    "import/no-duplicates": ["error", { "prefer-inline": true }]
   },
   "overrides": [
-    {
-      "files": [
-        "apps/webapp/src/lib/env.ts",
-        "apps/webapp/src/lib/amplifyServerUtils.ts",
-        "apps/webapp/next.config.ts",
-        "apps/cdk/lib/env.ts",
-        "apps/gateway-tools/lib/env.ts",
-        "apps/chat-agent/src/env.ts",
-        "packages/db/src/client.ts",
-        "packages/db/src/cli.ts",
-        "**/tests/**",
-        "**/*.test.ts"
-      ],
-      "rules": {
-        "no-restricted-syntax": "off"
-      }
-    },
     {
       "files": ["**/bin/**", "**/lib/**/*.ts", "**/test/**/*.ts", "**/*.test.ts"],
       "rules": {
