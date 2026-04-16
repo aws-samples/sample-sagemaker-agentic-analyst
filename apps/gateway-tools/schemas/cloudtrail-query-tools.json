@@ -1,0 +1,16 @@
+[
+  {
+    "name": "cloudtrail_query",
+    "description": "CloudTrail Lakeにセキュリティログ検索クエリを実行します。FROM句にはEvent Data Store IDを指定してください。IDはシステムプロンプトに記載されています。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "CloudTrail Lake SQLクエリ。FROM句にはEvent Data Store IDを指定してください。例: SELECT eventTime, eventName FROM <event-data-store-id> WHERE eventTime > date_add('hour', -24, current_timestamp) LIMIT 100"
+        }
+      },
+      "required": ["query"]
+    }
+  }
+]

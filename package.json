@@ -1,0 +1,36 @@
+{
+  "name": "agentic-analyst",
+  "private": true,
+  "license": "MIT-0",
+  "scripts": {
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.4",
+    "lint-staged": "^16",
+    "oxfmt": "^0",
+    "oxlint": "^1",
+    "oxlint-tsgolint": "^0",
+    "simple-git-hooks": "^2"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged && pnpm -r run test:unit"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxlint --config oxlintrc.json --fix",
+      "oxfmt --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.25.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

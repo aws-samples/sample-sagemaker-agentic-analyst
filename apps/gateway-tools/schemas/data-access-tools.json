@@ -1,0 +1,44 @@
+[
+  {
+    "name": "athena_query",
+    "description": "Lake Formation FGACが適用されたAthenaにSQLクエリを実行し、結果を返します。結果は最大1000行です。大量データが予想される場合はLIMIT句や集計関数を使用してください。catalog_searchとcatalog_detailでテーブルとスキーマを確認してからクエリを組み立ててください。データベースは自動設定されるため、テーブル名のみを指定してください。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "実行するSQLクエリ。テーブル名のみを使用（データベース名は不要）。例: SELECT * FROM store_details LIMIT 10"
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "s3_read",
+    "description": "S3ファイルの内容を読み取ります。s3://bucket/key 形式のフルパスを指定してください。catalog_detailで取得したS3パスにファイル名を付けて使用します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "読み取るファイルのS3パス（s3://bucket/key 形式）。catalog_detailのs3Uriにファイル名を付けて指定。例: s3://bucket/unstructured/public/product_catalog.txt"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "s3_list",
+    "description": "S3プレフィックス配下のファイル一覧を返します。catalog_detailで取得したs3Uriをそのまま指定してください。フォルダ内のファイル名がわからない場合に使用します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "一覧取得するS3プレフィックス（s3://bucket/prefix/ 形式）。catalog_detailのs3Uriをそのまま指定。例: s3://bucket/unstructured/public/"
+        }
+      },
+      "required": ["path"]
+    }
+  }
+]

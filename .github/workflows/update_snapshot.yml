@@ -1,0 +1,29 @@
+name: Update snapshot
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+       - 'dependabot/**'
+
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.x"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+        name: Install dependencies
+      - run: pnpm run test -- -u
+        working-directory: ./apps/cdk
+      - name: Add & Commit
+        uses: EndBug/add-and-commit@v7.2.0
+        with:
+          add: "apps/cdk/test/__snapshots__/."
+          message: "update snapshot"

@@ -1,0 +1,47 @@
+permissions:
+  contents: read
+name: Build
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  pull_request:
+jobs:
+  Build-and-Test-CDK:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+        name: Install dependencies
+      - run: |
+          pnpm run check:ci
+          pnpm run build
+          pnpm run test
+        working-directory: ./apps/cdk
+        name: Static analysis, build and test
+  Build-and-Test-Webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+        name: Install dependencies
+      - run: |
+          pnpm run check:ci
+        working-directory: ./apps/webapp
+        name: Static analysis
+      - run: |
+          cp .env.local.example .env.local
+          pnpm run build
+        working-directory: ./apps/webapp
+        name: Build

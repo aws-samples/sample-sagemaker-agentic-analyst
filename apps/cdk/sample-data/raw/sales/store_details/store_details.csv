@@ -1,0 +1,6 @@
+store_id,store_name,store_city,store_state,store_zip,store_open_date,store_closed_date
+S001,Downtown Flagship,New York,NY,10001,2020-01-15,
+S002,Mall of America,Bloomington,MN,55425,2019-06-01,
+S003,Westfield Center,San Francisco,CA,94102,2021-03-20,
+S004,Michigan Avenue,Chicago,IL,60611,2018-11-10,
+S005,Pike Place,Seattle,WA,98101,2022-02-28,

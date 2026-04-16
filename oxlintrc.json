@@ -1,0 +1,71 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicolo-ribaudo/oxlint-config-schema/refs/heads/main/schema.json",
+  "plugins": ["typescript", "react", "nextjs", "react-perf", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "nursery": "off"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "no-shadow": "off",
+    "import/no-unassigned-import": "off",
+    "react/react-in-jsx-scope": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "typescript/consistent-type-imports": ["error", { "prefer": "type-imports", "fixStyle": "inline-type-imports" }],
+    "import/no-duplicates": ["error", { "prefer-inline": true }],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "MemberExpression[object.object.name=\"process\"][object.property.name=\"env\"]",
+        "message": "process.env の直接参照は禁止です。各パッケージの env.ts を使用してください。"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "apps/webapp/src/lib/env.ts",
+        "apps/webapp/src/lib/amplifyServerUtils.ts",
+        "apps/webapp/next.config.ts",
+        "apps/cdk/lib/env.ts",
+        "apps/gateway-tools/lib/env.ts",
+        "apps/chat-agent/src/env.ts",
+        "packages/db/src/client.ts",
+        "packages/db/src/cli.ts",
+        "**/tests/**",
+        "**/*.test.ts"
+      ],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    },
+    {
+      "files": ["**/bin/**", "**/lib/**/*.ts", "**/test/**/*.ts", "**/*.test.ts"],
+      "rules": {
+        "no-new": "off",
+        "no-unused-expressions": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "cdk.out",
+    "pnpm-lock.yaml",
+    "*.js",
+    "*.mjs",
+    "*.cjs",
+    "lib/constructs/auth/pre-token-generation.ts",
+    "lib/constructs/agentcore-policy/handler.ts",
+    "lib/constructs/dsql-migrator/handler.ts",
+    "tests/integration/**"
+  ]
+}

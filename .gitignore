@@ -1,0 +1,40 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.dev-logs/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env*
+!.env*.example
+
+# Kiro
+.kiro/features.json
+.kiro/progress.md
+.kiro/logs/
+.kiro/settings/
+.kiro/specs/
+.kiro/steering/
+
+.playwright-cli/
+
+# E2Eテスト用トークン
+.env.test-tokens
+*.bkp
+.ash/

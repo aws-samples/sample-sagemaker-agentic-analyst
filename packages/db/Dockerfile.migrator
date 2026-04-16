@@ -1,0 +1,39 @@
+FROM public.ecr.aws/lambda/nodejs:22 AS builder
+WORKDIR /build
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/db/package.json packages/db/
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install --frozen-lockfile
+COPY packages/db/ packages/db/
+
+# handler.ts をインラインで作成
+RUN cat > handler.ts << 'HANDLER_EOF'
+import { AuroraDSQLPool } from '@aws/aurora-dsql-node-postgres-connector';
+import { migrate } from '@agentic-analyst/db/migrate';
+import path from 'node:path';
+
+export const handler = async () => {
+  const pool = new AuroraDSQLPool({
+    host: process.env.DSQL_ENDPOINT,
+    region: process.env.AWS_REGION,
+    user: 'admin',
+    database: 'postgres',
+    port: 5432,
+  });
+  await migrate({
+    pool,
+    migrationsDir: path.join(process.env.LAMBDA_TASK_ROOT ?? '.', 'migrations'),
+  });
+  // pool.end() を呼ばない — Lambda コンテナ再利用時に "Called end on pool more than once" を回避
+  return { statusCode: 200, body: 'Migration complete' };
+};
+HANDLER_EOF
+
+RUN npx esbuild handler.ts --bundle --outfile=dist/handler.mjs --platform=node --format=esm --charset=utf8 \
+  --external:@aws-sdk/* --external:pg-native \
+  --banner:js="import{createRequire}from'module';const require=createRequire(import.meta.url);"
+
+FROM public.ecr.aws/lambda/nodejs:22 AS runner
+COPY --from=builder /build/dist/handler.mjs ./
+COPY --from=builder /build/packages/db/migrations/ ./migrations/
+
+CMD ["handler.handler"]

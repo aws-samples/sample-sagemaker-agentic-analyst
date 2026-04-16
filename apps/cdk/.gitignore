@@ -1,0 +1,9 @@
+# TypeScript compiled output
+*.js
+*.d.ts
+!jest.config.js
+!eslint.config.mjs
+
+# CDK
+cdk.out/
+cdk.context.json

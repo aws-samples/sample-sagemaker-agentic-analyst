@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": ["es2018"],
+    "declaration": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": false,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "experimentalDecorators": true,
+    "noEmit": true,
+    "strictPropertyInitialization": false,
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["jest", "node"]
+  },
+  "exclude": [
+    "node_modules",
+    "cdk.out",
+    "gateway-tools",
+    "lib/constructs/auth/pre-token-generation.ts",
+    "lib/constructs/agentcore-policy/handler.ts"
+  ]
+}

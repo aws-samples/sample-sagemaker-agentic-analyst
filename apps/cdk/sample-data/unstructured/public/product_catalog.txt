@@ -1,0 +1,57 @@
+AnyCompany Product Catalog 2025
+
+================================================================================
+Product ID: P101
+Name: Premium Wireless Headphones
+Category: Electronics
+Price: $89.99
+Target Customer: Remote workers, commuters, music enthusiasts
+Supplier: SoundTech Industries (Shenzhen, China)
+Launch Date: 2023-09-01
+Description:
+  High-quality wireless headphones featuring active noise cancellation (ANC),
+  40-hour battery life, and Bluetooth 5.3. Available in Black, Silver, and
+  Navy Blue. Our best-selling electronics product since launch, consistently
+  ranked in the top 3 across all stores.
+
+================================================================================
+Product ID: P102
+Name: Smart Fitness Tracker
+Category: Wearables
+Price: $149.50
+Target Customer: Health-conscious consumers, athletes, corporate wellness programs
+Supplier: WearNext Corp (Seoul, South Korea)
+Launch Date: 2024-03-15
+Description:
+  Advanced fitness tracker with heart rate monitoring, GPS tracking, sleep
+  analysis, and blood oxygen measurement. Water-resistant to 50m. Integrates
+  with Apple Health and Google Fit. Popular in B2B corporate wellness deals
+  due to bulk discount pricing.
+
+================================================================================
+Product ID: P103
+Name: Organic Green Tea Set
+Category: Food & Beverage
+Price: $45.00
+Target Customer: Health-conscious consumers, gift shoppers, tea enthusiasts
+Supplier: Uji Tea Farm Cooperative (Kyoto, Japan)
+Launch Date: 2024-06-01
+Description:
+  Premium organic green tea collection sourced from Uji, Kyoto. Includes
+  Sencha, Gyokuro, and Matcha varieties (50g each). Packaged in a wooden
+  gift box. High online page views but lower conversion rate compared to
+  other products — customer feedback suggests shipping cost is a barrier.
+
+================================================================================
+Product ID: P104
+Name: Professional Camera Lens
+Category: Photography
+Price: $299.00
+Target Customer: Professional photographers, content creators, photography students
+Supplier: OptiVision GmbH (Munich, Germany)
+Launch Date: 2022-11-20
+Description:
+  50mm f/1.4 prime lens compatible with major DSLR and mirrorless camera
+  mounts. Features ultra-low dispersion glass and weather-sealed construction.
+  Highest average deal value in B2B sales (photography studios, media companies).
+  Limited stock — lead time 4-6 weeks from supplier.

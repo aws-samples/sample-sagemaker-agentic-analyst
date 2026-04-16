@@ -1,0 +1,179 @@
+[
+  {
+    "name": "catalog_search",
+    "description": "DataZoneカタログをキーワード検索し、データアセットを探します。検索結果にはSubscribe状況、listingId（catalog_detailで使用）が含まれます。subscribed=trueのアセットのみathena_queryやs3_readでアクセスできます。日本語セマンティック検索は非対応のため、検索キーワードは英語で指定してください。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "検索テキスト（英語）。テーブル名、カラム名、説明で検索できます。例: sales, store_id, customer"
+        },
+        "entityType": {
+          "type": "string",
+          "description": "アセットタイプでフィルタ。省略時はGlueTableとS3アセットのみ返します。指定可能な値: GlueTableAssetType, S3ObjectCollectionAssetType"
+        },
+        "subscribedOnly": {
+          "type": "boolean",
+          "description": "trueにするとSubscribe済みアセットのみ返します。データにアクセスする目的の検索ではtrueを推奨。カタログ全体を探索する場合はfalseまたは省略。デフォルト: false"
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "catalog_list_subscriptions",
+    "description": "Subscribe済みデータアセットの一覧を返します。ユーザーが「どんなデータが使えるか」を確認したい場合に使用します。athena_queryやs3_readでアクセスできるアセットのみ返します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "entityType": {
+          "type": "string",
+          "description": "アセットタイプでフィルタ。省略時はGlueTableとS3アセットのみ返します。指定可能な値: GlueTableAssetType, S3ObjectCollectionAssetType"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "catalog_detail",
+    "description": "DataZoneカタログのアセット詳細を取得します。catalog_searchで取得したlistingIdを指定すると、テーブルのスキーマ情報（カラム名・データ型）を返します。SQLクエリを組み立てる前に必ずこのツールでスキーマを確認してください。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "listingId": {
+          "type": "string",
+          "description": "catalog_searchの結果に含まれるlistingId"
+        },
+        "listingRevision": {
+          "type": "string",
+          "description": "catalog_searchの結果に含まれるlistingRevision。省略時は最新リビジョンを取得"
+        }
+      },
+      "required": ["listingId"]
+    }
+  },
+  {
+    "name": "subscription_request",
+    "description": "DataZoneカタログのアセットに対してSubscription Requestを送信します。catalog_searchで取得したlistingIdを指定してください。リクエストが承認されるとathena_queryやs3_readでアクセスできるようになります。自プロジェクトがPublishしたアセットへのリクエストは自動承認されます。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "listingId": {
+          "type": "string",
+          "description": "catalog_searchの結果に含まれるlistingId"
+        },
+        "requestReason": {
+          "type": "string",
+          "description": "リクエストの理由。データプロデューサーが承認判断に使用します"
+        }
+      },
+      "required": ["listingId", "requestReason"]
+    }
+  },
+  {
+    "name": "subscription_list_requests",
+    "description": "自プロジェクトに対する受信Subscription Request一覧を取得します。データプロデューサーが承認・拒否の判断に使用します。デフォルトではPENDINGリクエストのみ返します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "フィルタするステータス。PENDING, ACCEPTED, REJECTED。デフォルト: PENDING"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "subscription_approve",
+    "description": "受信したSubscription Requestを承認します。Full access承認はrequestIdのみ、FGAC付き承認はassetIdとfilterIdsも指定します。フィルタ一覧はsubscription_list_filtersで取得できます。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "description": "subscription_list_requestsの結果に含まれるrequestId"
+        },
+        "decisionComment": {
+          "type": "string",
+          "description": "承認コメント（任意）"
+        },
+        "assetId": {
+          "type": "string",
+          "description": "FGAC付き承認時のアセットID（entityId）。subscription_list_requestsの結果に含まれるentityIdを使用"
+        },
+        "filterIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "FGAC付き承認時のフィルタID一覧。subscription_list_filtersの結果に含まれるfilterIdを使用"
+        }
+      },
+      "required": ["requestId"]
+    }
+  },
+  {
+    "name": "subscription_reject",
+    "description": "受信したSubscription Requestを拒否します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "description": "subscription_list_requestsの結果に含まれるrequestId"
+        },
+        "decisionComment": {
+          "type": "string",
+          "description": "拒否理由（任意）"
+        }
+      },
+      "required": ["requestId"]
+    }
+  },
+  {
+    "name": "subscription_list_filters",
+    "description": "アセットに設定されたフィルタ（行・列フィルタ）一覧を取得します。FGAC付き承認（subscription_approve）でfilterIdsを指定する際に使用します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "対象アセットのID（entityId）。subscription_list_requestsの結果に含まれるentityIdを使用"
+        }
+      },
+      "required": ["assetId"]
+    }
+  },
+  {
+    "name": "subscription_cancel",
+    "description": "Subscribe済みアセットのSubscriptionを解除します。解除するとathena_queryやs3_readでアクセスできなくなります。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subscriptionId": {
+          "type": "string",
+          "description": "解除するSubscriptionのID"
+        }
+      },
+      "required": ["subscriptionId"]
+    }
+  },
+  {
+    "name": "subscription_revoke",
+    "description": "承認済みSubscriptionを取り消します。データプロデューサーがSubscriberのアクセスを取り消す際に使用します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subscriptionId": {
+          "type": "string",
+          "description": "取り消すSubscriptionのID"
+        },
+        "retainPermissions": {
+          "type": "boolean",
+          "description": "trueにするとLake Formation/S3 Access Grantsの権限を保持したまま取り消します。デフォルト: false"
+        }
+      },
+      "required": ["subscriptionId"]
+    }
+  }
+]

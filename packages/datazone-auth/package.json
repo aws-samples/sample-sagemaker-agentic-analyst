@@ -1,0 +1,25 @@
+{
+  "name": "@agentic-analyst/datazone-auth",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT-0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "oxlint --config ../../oxlintrc.json --type-check --fix .",
+    "lint:ci": "oxlint --config ../../oxlintrc.json --type-check --max-warnings 0 .",
+    "format": "oxfmt --write .",
+    "format:ci": "oxfmt --check .",
+    "check": "pnpm run lint && pnpm run format",
+    "check:ci": "pnpm run lint:ci && pnpm run format:ci"
+  },
+  "dependencies": {
+    "@aws-sdk/client-datazone": "^3.997.0",
+    "@aws-sdk/client-identitystore": "^3.1000.0",
+    "@aws-sdk/client-sso-oidc": "^3.1000.0"
+  }
+}

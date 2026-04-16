@@ -1,0 +1,16 @@
+global_settings:
+  severity_threshold: MEDIUM
+  fail_on_findings: true
+  ignore_paths:
+    # Build artifacts (not tracked in git)
+    - path: 'apps/cdk/cdk.out/**'
+      reason: 'CDK synth output - not tracked in git, excluded by .gitignore'
+    - path: 'apps/webapp/.next/**'
+      reason: 'Next.js build output - not tracked in git, excluded by .gitignore'
+    - path: '**/node_modules/**'
+      reason: 'Dependencies - not tracked in git'
+    - path: '**/__snapshots__/**'
+      reason: 'Test snapshots contain dummy values (123456789012) only'
+    # CDK helper template (not deployed directly, used for manual role setup)
+    - path: 'apps/cdk/ai-agent-role.template.yml'
+      reason: 'Manual CloudFormation template for operator role setup - not deployed by CDK'
