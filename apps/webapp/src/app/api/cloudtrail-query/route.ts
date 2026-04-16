@@ -73,7 +73,7 @@ export async function POST(req: Request) {
           const record: Record<string, string> = {};
           row.forEach((kv) => {
             const k = Object.keys(kv)[0];
-            if (k) record[k] = String(Object.values(kv)[0] ?? '');
+            if (k) record[k] = Object.values(kv)[0] ?? '';
           });
           return record;
         });
