@@ -41,7 +41,7 @@ jobs:
         working-directory: ./apps/webapp
         name: Static analysis
       - run: |
-          printf '%s\n' 'COGNITO_DOMAIN=placeholder' 'USER_POOL_ID=placeholder' 'USER_POOL_CLIENT_ID=placeholder' > .env.local
+          printf '%s\n' 'COGNITO_DOMAIN=placeholder' 'USER_POOL_ID=placeholder' 'USER_POOL_CLIENT_ID=placeholder' 'AMPLIFY_APP_ORIGIN=http://localhost:3000' > .env.local
           pnpm run build
         working-directory: ./apps/webapp
         name: Build
