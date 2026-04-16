@@ -30,6 +30,7 @@ export const SYSTEM_PROMPT = `<role>
 1. catalog_search(subscribedOnly=true) でユーザーがアクセス可能なアセットを検索する
    - 日本語の質問でも、検索キーワードは英語に翻訳する（SearchListings APIは日本語セマンティック検索に非対応）
    - カラム名でも検索可能（例: "store_id", "sales_amount"）
+   - subscribed=true にはSubscribe済みアセットと自プロジェクトが所有するアセットの両方が含まれる
 2. 見つからなければ catalog_search(subscribedOnly=false) でカタログ全体を検索する
    - subscribed=false のアセットが見つかった場合は、権限がない旨を伝え subscription_request での購読を提案する
 
@@ -43,15 +44,15 @@ S3ファイルの読み取り:
 2. s3_read にフルパス（s3://bucket/prefix/filename）を渡して読み取る
 
 「どんなデータが使えるか」「テーブル一覧を見せて」のような一覧要求の場合:
-1. catalog_list_subscriptions でSubscribe済みアセット一覧を返す
+1. catalog_list_subscriptions でアクセス可能なアセット一覧を返す（Subscribe済み＋自プロジェクト所有）
 
 セキュリティ監査の質問の場合:
 1. cloudtrail_query でCloudTrail Lakeを検索する（FROM句にはEvent Data Store ID \`${CLOUDTRAIL_EVENT_DATA_STORE_ID}\` を使用）
 </workflow>
 
 <tool_tips>
-- catalog_search は検索キーワード必須。subscribedOnly=true で購読済みのみ、falseでカタログ全体を検索する
-- catalog_list_subscriptions は引数不要。購読済みアセットの全一覧を返す
+- catalog_search は検索キーワード必須。subscribedOnly=true で購読済みまたは自プロジェクト所有のアセットのみ、falseでカタログ全体を検索する
+- catalog_list_subscriptions は引数不要。アクセス可能なアセットの全一覧を返す（Subscribe済み＋自プロジェクト所有）
 - catalog_detail は1テーブルずつ取得。必要なテーブルだけ呼ぶ
 - subscribed=false のテーブルは athena_query / s3_read でアクセスできない。権限がない旨を伝え、subscription_request での購読を提案する
 - subscription_request はユーザーに確認してから実行すること。勝手にリクエストを送信してはならない。「〜へのアクセスをリクエストしますか？」と確認し、承諾を得てから実行する

@@ -194,6 +194,9 @@ async function handleCatalogSearch(event: CatalogSearchEvent, context: Context):
     // listingIdでマッチ → S3 URIでフォールバック（同じS3ロケーションの別listingが購読済みの場合）
     const subscriptionId =
       subscribedListingMap.get(listing.listingId ?? '') ?? (s3Uri && subscribedS3UriMap.get(s3Uri));
+    // Publisherプロジェクトは自己所有アセットにセルフサブスクライブなしでアクセス可能
+    // (LFがプロジェクト作成時にALL_TABLESへのSELECT権限を自動付与するため)
+    const isOwnedByProject = listing.owningProjectId === projectId;
     raw.push({
       name: listing.name ?? 'Unknown',
       type,
@@ -201,7 +204,7 @@ async function handleCatalogSearch(event: CatalogSearchEvent, context: Context):
       listingRevision: listing.listingRevision ?? '',
       owningProjectId: listing.owningProjectId ?? 'Unknown',
       description: listing.description,
-      subscribed: !!subscriptionId,
+      subscribed: isOwnedByProject || !!subscriptionId,
       subscriptionId,
       s3Uri,
     });
@@ -223,30 +226,61 @@ async function handleListSubscriptions(event: ListSubscriptionsEvent, context: C
   const domainId = env.DATAZONE_DOMAIN_ID!;
   const client = getClient();
   const entityTypeFilter = event.entityType;
-  const subsRes = await client.send(
-    new ListSubscriptionsCommand({
-      domainIdentifier: domainId,
-      owningProjectId: projectId,
-      status: 'APPROVED',
-      maxResults: 50,
-    }),
-  );
+
+  // ListSubscriptions + SearchListings(全件)を並列取得し、
+  // 自プロジェクト所有アセット（セルフサブスクライブ不要でアクセス可能）もマージする
+  const [subsRes, searchRes] = await Promise.all([
+    client.send(
+      new ListSubscriptionsCommand({
+        domainIdentifier: domainId,
+        owningProjectId: projectId,
+        status: 'APPROVED',
+        maxResults: 50,
+      }),
+    ),
+    client.send(new SearchListingsCommand({ domainIdentifier: domainId, maxResults: 50 })),
+  ]);
 
   const results: CatalogResult[] = [];
+  const seenListingIds = new Set<string>();
+
   for (const sub of subsRes.items ?? []) {
     const listing = sub.subscribedListing;
     if (!listing) continue;
     const type = listing.item?.assetListing?.entityType ?? 'Unknown';
     if (entityTypeFilter ? type !== entityTypeFilter : EXCLUDED_ENTITY_TYPES.has(type)) continue;
+    const listingId = listing.id ?? '';
+    seenListingIds.add(listingId);
     results.push({
       name: listing.name ?? 'Unknown',
       type,
-      listingId: listing.id ?? '',
+      listingId,
       listingRevision: listing.revision ?? '',
       owningProjectId: listing.ownerProjectId ?? 'Unknown',
       description: listing.description,
       subscribed: true,
       subscriptionId: sub.id,
+    });
+  }
+
+  // 自プロジェクト所有アセット（Subscriptionに含まれないもの）を追加
+  for (const item of searchRes.items ?? []) {
+    const listing = item.assetListing;
+    if (!listing || listing.owningProjectId !== projectId) continue;
+    const type = listing.entityType ?? 'Unknown';
+    if (entityTypeFilter ? type !== entityTypeFilter : EXCLUDED_ENTITY_TYPES.has(type)) continue;
+    const listingId = listing.listingId ?? '';
+    if (seenListingIds.has(listingId)) continue;
+    const s3Uri = type === S3_ASSET_TYPE ? extractS3Uri(listing.additionalAttributes?.forms) : undefined;
+    results.push({
+      name: listing.name ?? 'Unknown',
+      type,
+      listingId,
+      listingRevision: listing.listingRevision ?? '',
+      owningProjectId: listing.owningProjectId ?? 'Unknown',
+      description: listing.description,
+      subscribed: true,
+      s3Uri,
     });
   }
 

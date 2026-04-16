@@ -1,7 +1,7 @@
 [
   {
     "name": "catalog_search",
-    "description": "DataZoneカタログをキーワード検索し、データアセットを探します。検索結果にはSubscribe状況、listingId（catalog_detailで使用）が含まれます。subscribed=trueのアセットのみathena_queryやs3_readでアクセスできます。日本語セマンティック検索は非対応のため、検索キーワードは英語で指定してください。",
+    "description": "DataZoneカタログをキーワード検索し、データアセットを探します。検索結果にはSubscribe状況、listingId（catalog_detailで使用）が含まれます。subscribed=trueのアセット（Subscribe済みまたは自プロジェクトが所有するアセット）はathena_queryやs3_readでアクセスできます。日本語セマンティック検索は非対応のため、検索キーワードは英語で指定してください。",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -23,7 +23,7 @@
   },
   {
     "name": "catalog_list_subscriptions",
-    "description": "Subscribe済みデータアセットの一覧を返します。ユーザーが「どんなデータが使えるか」を確認したい場合に使用します。athena_queryやs3_readでアクセスできるアセットのみ返します。",
+    "description": "アクセス可能なデータアセットの一覧を返します（Subscribe済みアセット＋自プロジェクトが所有するアセット）。ユーザーが「どんなデータが使えるか」を確認したい場合に使用します。athena_queryやs3_readでアクセスできるアセットを返します。",
     "inputSchema": {
       "type": "object",
       "properties": {

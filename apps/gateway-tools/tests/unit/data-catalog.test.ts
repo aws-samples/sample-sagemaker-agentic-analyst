@@ -349,12 +349,14 @@ describe('catalog_list_subscriptions', () => {
         },
       ],
     });
+    // SearchListings（自プロジェクト所有アセット取得用）
+    mockSend.mockResolvedValueOnce({ items: [] });
 
     const result = await handler({}, ctx('catalog_list_subscriptions', { projectId: 'proj-1' }));
     const content = JSON.parse(result.result!.content[0].text);
     expect(content).toHaveLength(1);
     expect(content[0]).toMatchObject({ name: 'store_details', subscribed: true, subscriptionId: 'sub-store' });
-    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledTimes(2);
   });
 
   it('entityTypeでフィルタできる', async () => {
@@ -382,6 +384,8 @@ describe('catalog_list_subscriptions', () => {
         },
       ],
     });
+    // SearchListings（自プロジェクト所有アセット取得用）
+    mockSend.mockResolvedValueOnce({ items: [] });
 
     const result = await handler(
       { entityType: 'S3ObjectCollectionAssetType' },

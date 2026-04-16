@@ -1445,7 +1445,7 @@ exports[`Snapshot test 2`] = `
               },
               "ToolSchema": {
                 "S3": {
-                  "Uri": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/0f2a35ee182a2cc5a010b3251bc84a2eebf40b771863b8dd5d3594976f922f43.json",
+                  "Uri": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/f4bffa118cff8349a54b26b24fdc93b4a794bae816b7ced763b7e54a3d36e27c.json",
                 },
               },
             },
