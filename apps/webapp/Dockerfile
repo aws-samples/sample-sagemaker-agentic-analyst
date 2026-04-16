@@ -1,7 +1,7 @@
 FROM public.ecr.aws/lambda/nodejs:22 AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /monorepo
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
 COPY apps/webapp/package.json apps/webapp/
 COPY packages/datazone-auth/package.json packages/datazone-auth/
 COPY packages/shared-types/package.json packages/shared-types/

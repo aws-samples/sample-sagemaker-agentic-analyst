@@ -2,7 +2,7 @@ FROM --platform=linux/arm64 public.ecr.aws/docker/library/node:20-slim AS builde
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /monorepo
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
 COPY apps/chat-agent/package.json apps/chat-agent/
 COPY packages/shared-types/package.json packages/shared-types/
 RUN pnpm install --frozen-lockfile

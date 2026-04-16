@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/nodejs:22 AS builder
 WORKDIR /build
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY packages/db/package.json packages/db/
 RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install --frozen-lockfile
 COPY packages/db/ packages/db/
