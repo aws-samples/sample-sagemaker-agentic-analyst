@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Play, AlertCircle, TableIcon } from 'lucide-react';
+import { ProjectRequiredPlaceholder } from '@/components/ProjectRequiredPlaceholder';
 
 type QueryResult = {
   columns: string[];
@@ -53,6 +54,8 @@ export function QueryInterface({ projectId }: { projectId: string }) {
     { label: '営業成績（機密）', sql: 'SELECT * FROM sales_rep_performance LIMIT 5' },
     { label: 'B2Bパイプライン（機密）', sql: 'SELECT * FROM b2b_sales_pipeline LIMIT 5' },
   ];
+
+  if (!projectId) return <ProjectRequiredPlaceholder />;
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-6xl mx-auto">

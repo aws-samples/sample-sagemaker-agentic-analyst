@@ -127,7 +127,7 @@ cp .env.credentials.example .env.credentials
 ```bash
 # .env.credentials
 export AWS_PROFILE=your-profile-name
-export AWS_REGION=ap-northeast-1
+export AWS_REGION=<your-region>  # IdCホームリージョンと同じリージョンを指定（例: ap-northeast-1, us-west-2）
 ```
 
 ### 2.3 CDK環境変数の設定
@@ -224,7 +224,7 @@ pnpm exec cdk deploy AgenticAnalystIdStore
 
 ```bash
 # .env.local に追加
-IDC_SAML_METADATA_URL=https://portal.sso.ap-northeast-1.amazonaws.com/saml/metadata/xxxxxxxxxx
+IDC_SAML_METADATA_URL=https://portal.sso.<your-region>.amazonaws.com/saml/metadata/xxxxxxxxxx
 ```
 
 ### 4.6 OAuth CMA + Trusted Token Issuer設定

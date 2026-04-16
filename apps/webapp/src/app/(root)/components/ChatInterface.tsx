@@ -11,6 +11,7 @@ import 'streamdown/styles.css';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { parseImageEvent } from '@/lib/chat-utils';
+import { ProjectRequiredPlaceholder } from '@/components/ProjectRequiredPlaceholder';
 import type { SSEEvent } from '@agentic-analyst/shared-types';
 
 interface ThinkingStep {
@@ -480,7 +481,8 @@ export function ChatInterface({
         onScrollCapture={(e) => onScroll?.((e.target as HTMLElement).scrollTop)}
       >
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
-          {messages.length === 0 && (
+          {messages.length === 0 && !projectId && <ProjectRequiredPlaceholder />}
+          {messages.length === 0 && projectId && (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Sparkles className="w-6 h-6 text-primary" />
@@ -522,12 +524,12 @@ export function ChatInterface({
               onKeyDown={handleKeyDown}
               placeholder="メッセージを入力..."
               className="min-h-[44px] max-h-32 resize-none rounded-xl border-border/60 focus-visible:ring-primary/30"
-              disabled={isStreaming}
+              disabled={isStreaming || !projectId}
             />
             <Button
               type="submit"
               size="icon"
-              disabled={isStreaming || isLoadingHistory || !input.trim()}
+              disabled={isStreaming || isLoadingHistory || !input.trim() || !projectId}
               className="rounded-xl shrink-0 h-[44px] w-[44px]"
             >
               {isStreaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

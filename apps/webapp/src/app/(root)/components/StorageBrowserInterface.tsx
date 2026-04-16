@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from 'react';
 import '@aws-amplify/ui-react-storage/styles.css';
 import { createManagedAuthAdapter, createStorageBrowser } from '@aws-amplify/ui-react-storage/browser';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { ProjectRequiredPlaceholder } from '@/components/ProjectRequiredPlaceholder';
 
 type CredentialsResult = {
   credentials: { accessKeyId: string; secretAccessKey: string; sessionToken: string; expiration: Date };
@@ -76,11 +77,7 @@ export function StorageBrowserInterface({ projectId }: { projectId: string }) {
   }, [projectId, config]);
 
   if (!projectId) {
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
-        ヘッダーでプロジェクト環境を選択してください
-      </div>
-    );
+    return <ProjectRequiredPlaceholder />;
   }
 
   if (credError) {
