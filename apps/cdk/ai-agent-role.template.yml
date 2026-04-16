@@ -86,14 +86,6 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Sid: SSMSessionManager
-                Effect: Allow
-                Action:
-                  - ssm:StartSession
-                  - ssm:TerminateSession
-                  - ssm:SendCommand
-                Resource: '*'
-
               - Sid: CloudWatchLogsInsights
                 Effect: Allow
                 Action:
@@ -136,64 +128,18 @@ Resources:
                   - bedrock-agentcore:InvokeGateway
                 Resource: '*'
 
-              - Sid: LakeFormationAdmin
-                Effect: Allow
-                Action:
-                  - lakeformation:GetDataLakeSettings
-                  - lakeformation:PutDataLakeSettings
-                  - lakeformation:DeregisterResource
-                  - lakeformation:ListResources
-                  - lakeformation:GrantPermissions
-                  - lakeformation:RevokePermissions
-                Resource: '*'
-
               - Sid: DataZoneManagement
                 Effect: Allow
                 Action:
-                  - datazone:DeleteDomain
                   - datazone:GetDomain
                   - datazone:ListDomains
                   - datazone:ListProjects
-                  - datazone:DeleteProject
                   - datazone:GetEnvironment
                   - datazone:GetEnvironmentCredentials
                   - datazone:ListEnvironments
                   - datazone:GetConnection
                   - datazone:ListConnections
                   - datazone:ListProjectMemberships
-                Resource: '*'
-
-              - Sid: GlueCleanup
-                Effect: Allow
-                Action:
-                  - glue:DeleteDatabase
-                Resource: '*'
-
-              - Sid: S3ControlAccessGrants
-                Effect: Allow
-                Action:
-                  - s3:GetDataAccess
-                  - s3:ListAccessGrants
-                  - s3:ListAccessGrantsLocations
-                  - s3:DeleteAccessGrant
-                  - s3:DeleteAccessGrantsLocation
-                Resource: '*'
-
-              - Sid: IAMRoleCleanup
-                Effect: Allow
-                Action:
-                  - iam:DeleteRole
-                  - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
-                  - iam:ListRolePolicies
-                  - iam:ListAttachedRolePolicies
-                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/AmazonSageMaker*'
-
-              - Sid: SSOAdminCleanup
-                Effect: Allow
-                Action:
-                  - sso:DeleteApplication
-                  - sso:ListApplications
                 Resource: '*'
 
 Outputs:
