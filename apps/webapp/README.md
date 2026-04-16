@@ -2,36 +2,39 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Run locally
 
-First, run the development server:
-
 ```bash
-# Run this command in the repository root
-cd apps/webapp
+# Install dependencies (run at monorepo root)
+pnpm install --frozen-lockfile
 
-# Run this command in the webapp directory
-cp .env.local.example .env.local
-code .env.local
-# Then populate values in .env.local
+# Set up environment variables
+cp apps/webapp/.env.local.example apps/webapp/.env.local
+# Populate values in apps/webapp/.env.local
 
-# run the next.js server
-pnpm run dev
+# Start development servers (webapp + chat-agent)
+./scripts/dev-server.sh start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3012](http://localhost:3012) with your browser to see the result.
+
+```bash
+# Stop servers
+./scripts/dev-server.sh stop
+
+# Check status
+./scripts/dev-server.sh status
+```
 
 ## Project Structure
 
 ```
 webapp/
 ├── src/
-│   ├── actions/         # Server actions
-│   │   └── schemas/     # Zod validation schemas
-│   ├── app/             # App router pages
+│   ├── app/             # App router pages and API routes
 │   ├── components/      # React components
-│   ├── hooks/           # Custom React hooks
-│   └── lib/             # Utility functions and configurations
-├── prisma/              # Prisma schema and migrations
-└── public/              # Static assets
+│   ├── lib/             # Utility functions and configurations
+│   ├── stores/          # Zustand stores
+│   └── proxy.ts         # Route protection (redirects unauthenticated users)
+└── tests/               # Unit and integration tests
 ```
 
 ## How to expand the project
@@ -42,22 +45,7 @@ To add new pages to the application:
 
 1. Create a new directory under `src/app` with the desired route name
 2. Add a `page.tsx` file inside this directory
-3. For protected pages, use the authentication session:
-
-```tsx
-import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-
-export default async function NewPage() {
-  const session = await getSession();
-
-  if (!session?.user) {
-    redirect('/api/auth/signin');
-  }
-
-  // Your page content here
-}
-```
+3. For protected pages, place them under `src/app/(app)/` — route protection is handled by `proxy.ts`
 
 ### Server Actions
 
@@ -83,25 +71,14 @@ This project uses type-safe server actions with authentication:
 
    import { authActionClient } from '@/lib/safe-action';
    import { exampleActionSchema } from './schemas/example';
-   import { prisma } from '@/lib/prisma';
-   import { revalidatePath } from 'next/cache';
 
    export const exampleAction = authActionClient.schema(exampleActionSchema).action(async ({ parsedInput, ctx }) => {
      const { field1, field2 } = parsedInput;
      const { userId } = ctx;
 
      // Perform database operations or other logic
-     const result = await prisma.example.create({
-       data: {
-         field1,
-         field2,
-         userId,
-       },
-     });
-
-     // Revalidate the page to refresh data
-     revalidatePath('/');
-     return { result };
+     await db.insert(exampleTable).values({ field1, field2, userId });
+     // Data is returned via SWR — call mutate() on the client after this action succeeds
    });
    ```
 
@@ -117,6 +94,7 @@ This project uses type-safe server actions with authentication:
    import { exampleAction } from '@/actions/example';
    import { exampleActionSchema } from '@/actions/schemas/example';
    import { toast } from 'sonner';
+   import { handleError } from '@/lib/error-handler';
 
    export default function ExampleForm() {
      const {
@@ -129,7 +107,7 @@ This project uses type-safe server actions with authentication:
            toast.success('Action completed successfully');
          },
          onError: ({ error }) => {
-           toast.error(typeof error === 'string' ? error : 'An error occurred');
+           handleError(error);
          },
        },
        formProps: {
@@ -161,6 +139,7 @@ This project uses type-safe server actions with authentication:
    import { useAction } from 'next-safe-action/hooks';
    import { simpleAction } from '@/actions/example';
    import { toast } from 'sonner';
+   import { handleError } from '@/lib/error-handler';
 
    export default function ExampleButton() {
      const { execute, status } = useAction(simpleAction, {
@@ -168,7 +147,7 @@ This project uses type-safe server actions with authentication:
          toast.success('Action completed successfully');
        },
        onError: (error) => {
-         toast.error(typeof error === 'string' ? error : 'An error occurred');
+         handleError(error);
        },
      });
 
@@ -179,34 +158,3 @@ This project uses type-safe server actions with authentication:
      );
    }
    ```
-
-### Asynchronous Jobs
-
-Asynchronous jobs are Lambda functions that handle long-running or background tasks. All async jobs are invoked through a single Lambda function (`async-job-runner.ts`) and can be triggered manually or as scheduled jobs.
-
-**File structure:**
-
-Place each job's implementation in a subdirectory under `src/jobs/`:
-
-```
-webapp/src/jobs/
-├── async-job-runner.ts           # Lambda handler entry point (dispatches to jobs)
-└── async-job/                    # Job implementations directory
-    └── translate.ts              # Job implementation
-```
-
-The `async-job-runner.ts` handler dispatches to the appropriate job based on the event payload type.
-
-**Deployment:**
-
-The `job.Dockerfile` builds all TypeScript files in `src/jobs/` using `esbuild src/jobs/*.ts --bundle`. The CDK stack overrides the entry point using the `cmd` parameter:
-
-```typescript
-// Example from cdk/lib/constructs/async-job.ts
-code: DockerImageCode.fromImageAsset(join('..', 'webapp'), {
-  cmd: ['async-job-runner.handler'], // Override the default CMD
-  file: 'job.Dockerfile',
-});
-```
-
-This allows multiple Lambda functions to use the same Docker image with different handlers.
