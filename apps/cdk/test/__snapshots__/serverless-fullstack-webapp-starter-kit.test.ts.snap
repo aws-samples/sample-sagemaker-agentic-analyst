@@ -304,7 +304,7 @@ exports[`Snapshot test 2`] = `
       },
     },
     "FrontendDomainName": {
-      "Value": "https://web.example.com",
+      "Value": "https://example.com",
     },
     "GatewayArn": {
       "Value": {
@@ -3273,7 +3273,7 @@ exports[`Snapshot test 2`] = `
                 "DELETE",
               ],
               "AllowedOrigins": [
-                "https://web.example.com",
+                "https://example.com",
                 "http://localhost:3012",
                 "https://dzd-12345.sagemaker.us-west-2.on.aws",
               ],
@@ -4002,7 +4002,7 @@ exports[`Snapshot test 2`] = `
       "Properties": {
         "DistributionConfig": {
           "Aliases": [
-            "web.example.com",
+            "example.com",
           ],
           "Comment": "CloudFront for Webapp",
           "DefaultCacheBehavior": {
@@ -4366,7 +4366,7 @@ exports[`Snapshot test 2`] = `
                 "AgentRuntimeArn",
               ],
             },
-            "AMPLIFY_APP_ORIGIN": "https://web.example.com",
+            "AMPLIFY_APP_ORIGIN": "https://example.com",
             "AWS_ACCOUNT_ID": "123456789012",
             "CLOUDTRAIL_EVENT_DATA_STORE_ID": {
               "Fn::GetAtt": [
@@ -4659,7 +4659,7 @@ exports[`Snapshot test 2`] = `
           },
         },
         "HostedZoneId": "DUMMY",
-        "Name": "web.example.com.",
+        "Name": "example.com.",
         "Type": "A",
       },
       "Type": "AWS::Route53::RecordSet",
@@ -4736,7 +4736,7 @@ exports[`Snapshot test 2`] = `
               {
                 "Fn::ImportValue": "AgenticAnalystIdStore:ExportsOutputRefUserPool6BA7E5F296FD7236",
               },
-              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://web.example.com/api/auth/sign-in-callback","http://localhost:3012/api/auth/sign-in-callback"],"LogoutURLs":["https://web.example.com/api/auth/sign-out-callback","http://localhost:3012/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":60},"physicalResourceId":{"id":"",
+              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://example.com/api/auth/sign-in-callback","http://localhost:3012/api/auth/sign-in-callback"],"LogoutURLs":["https://example.com/api/auth/sign-out-callback","http://localhost:3012/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":60},"physicalResourceId":{"id":"",
               {
                 "Fn::ImportValue": "AgenticAnalystIdStore:ExportsOutputRefUserPool6BA7E5F296FD7236",
               },
@@ -4763,7 +4763,7 @@ exports[`Snapshot test 2`] = `
               {
                 "Fn::ImportValue": "AgenticAnalystIdStore:ExportsOutputRefUserPool6BA7E5F296FD7236",
               },
-              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://web.example.com/api/auth/sign-in-callback","http://localhost:3012/api/auth/sign-in-callback"],"LogoutURLs":["https://web.example.com/api/auth/sign-out-callback","http://localhost:3012/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":60},"physicalResourceId":{"id":"",
+              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://example.com/api/auth/sign-in-callback","http://localhost:3012/api/auth/sign-in-callback"],"LogoutURLs":["https://example.com/api/auth/sign-out-callback","http://localhost:3012/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":60},"physicalResourceId":{"id":"",
               {
                 "Fn::ImportValue": "AgenticAnalystIdStore:ExportsOutputRefUserPool6BA7E5F296FD7236",
               },
