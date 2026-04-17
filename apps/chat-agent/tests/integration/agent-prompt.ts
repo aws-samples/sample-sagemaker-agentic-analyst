@@ -7,7 +7,8 @@
  * - ストリーミングでthinkingブロックとtextブロックが分離されること
  */
 import { Agent, BedrockModel } from '@strands-agents/sdk';
-import { SYSTEM_PROMPT } from '../../src/prompt.js';
+import { buildSystemPrompt } from '../../src/prompt.js';
+const SYSTEM_PROMPT = buildSystemPrompt();
 
 const AWS_REGION = process.env.AWS_REGION || 'us-west-2';
 const BEDROCK_MODEL_ID = process.env.BEDROCK_MODEL_ID || 'global.anthropic.claude-sonnet-4-6';

@@ -42,6 +42,9 @@ export interface AgenticAnalystStackProps extends StackProps {
   /** 環境名（例: 'dev', 'stg'）。未指定なら無印環境 */
   readonly envName?: string;
 
+  /** Chronos-2 時系列予測機能を有効化するか */
+  readonly enableTimeSeries?: boolean;
+
   /** us-east-1のACM証明書 */
   readonly sharedCertificate?: ICertificate;
 
@@ -82,6 +85,7 @@ export class AgenticAnalystStack extends Stack {
       bedrockModelId: props.bedrockModelId,
       envName: props.envName,
       database,
+      enableTimeSeries: props.enableTimeSeries,
     });
 
     const webapp = new Webapp(this, 'Webapp', {

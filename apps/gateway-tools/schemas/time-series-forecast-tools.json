@@ -1,0 +1,32 @@
+[
+  {
+    "name": "time_series_forecast",
+    "description": "Athena SQL で時系列データを取得し、Chronos-2 モデルで将来値を予測します。SQL の SELECT 句は以下の規約に従うこと: (a) タイムスタンプ列は `AS ts` でエイリアス、(b) 予測対象の数値列は `AS y` でエイリアス、(c) [複数系列予測時のみ] 系列識別子列は `AS item_id` でエイリアス。Lambda は `ts` / `y` / `item_id` のカラム名で結果を読み取る。Chronos-2 は等間隔タイムスタンプを前提とするため、Lambda 側で `fill_missing_policy` に従って欠損タイムスタンプを自動補完する。タイムゾーンは Asia/Tokyo で統一。レスポンスは統計サマリと予測全点（p10 / p50 / p90 配列, length === prediction_length）を含む。LLM は summary のみを自然言語で解釈し、配列は Code Interpreter へ素通しして可視化すること。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Athena SQL。SELECT 句で必ず `... AS ts, ... AS y [, ... AS item_id]` の規約でエイリアスすること。ORDER BY 不要（Lambda がソート）。データ範囲の目安: 日次なら過去 90 日以上（年次季節性には 2 年程度）、週次なら 52 週以上、月次なら 24 ヶ月以上。取得件数は Chronos-2 の context_length 上限 8192 まで（超過分は最新 8192 件のみ使用）。単系列の例: SELECT order_date AS ts, SUM(sales_amount) AS y FROM retail_sales_performance WHERE product_id = 'P101' AND order_date >= current_date - INTERVAL '2' YEAR GROUP BY order_date"
+        },
+        "freq": {
+          "type": "string",
+          "description": "pandas 互換の頻度文字列。SQL の時系列粒度と一致させること。代表例: '1h'（時間次）、'D'（日次）、'W'（週次、日曜始まり）、'MS'（月次、月初）、'15min'、'2W'、'QS'（四半期初）"
+        },
+        "prediction_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "予測ステップ数（freq 単位）。例: 日次で 30 日先なら freq='D', prediction_length=30。月次で 3 ヶ月先なら freq='MS', prediction_length=3。精度の観点から、過去データの観測数の 50% 以下に収めることを推奨"
+        },
+        "fill_missing_policy": {
+          "type": "string",
+          "enum": ["zero", "forward_fill", "error"],
+          "default": "zero",
+          "description": "SQL 結果に欠損タイムスタンプがあった場合の扱い。'zero': 0 で埋める（売上や発生件数など）。'forward_fill': 直前の値で埋める（在庫レベルや価格など）。'error': 欠損があればエラーを返す"
+        }
+      },
+      "required": ["query", "freq", "prediction_length"]
+    }
+  }
+]

@@ -21,6 +21,10 @@ const envSchema = z.object({
   DSQL_ENDPOINT: z.string().optional(),
   CONVERSATION_WINDOW_SIZE: z.coerce.number().default(40),
   IDC_APPLICATION_ARN: z.string().optional(),
+  ENABLE_TIME_SERIES: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
 });
 
 export const env = envSchema.parse(process.env);

@@ -14,6 +14,8 @@ const envSchema = z.object({
   DATAZONE_DOMAIN_ID: z.string().optional(),
   // cloudtrail-query
   CLOUDTRAIL_EVENT_DATA_STORE_ID: z.string().optional(),
+  // time-series-forecast
+  CHRONOS_ENDPOINT_NAME: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

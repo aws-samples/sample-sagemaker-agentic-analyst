@@ -24,6 +24,7 @@ import { ContainerImageBuild } from '@cdklabs/deploy-time-build';
 import { join } from 'path';
 import { PolicyEngine } from './agentcore-policy';
 import { GatewayTracing } from './agentcore-gateway';
+import { Chronos2Endpoint } from './chronos2-endpoint';
 import { type Database } from './database';
 
 export interface AgentProps {
@@ -43,6 +44,8 @@ export interface AgentProps {
   readonly envName?: string;
   /** DSQL Database（セッションメタデータ保存用） */
   readonly database?: Database;
+  /** Chronos-2 時系列予測機能を有効化するか（デフォルト false: コスト影響のため opt-in） */
+  readonly enableTimeSeries?: boolean;
 }
 
 /**
@@ -229,6 +232,56 @@ export class Agent extends Construct {
       toolSchema: ToolSchema.fromLocalAsset(join(gatewayToolsDir, 'schemas', 'cloudtrail-query-tools.json')),
     });
 
+    // --- Tool Lambda: time-series-forecast (Chronos-2 + SageMaker, opt-in) ---
+    if (props.enableTimeSeries) {
+      const chronos = new Chronos2Endpoint(this, 'Chronos2', { envName: props.envName });
+
+      const timeSeriesLogGroup = new LogGroup(this, 'TimeSeriesForecastLogs', { retention: RetentionDays.ONE_WEEK });
+      const timeSeriesFn = new NodejsFunction(this, 'TimeSeriesForecast', {
+        entry: join(gatewayToolsDir, 'time-series-forecast', 'index.ts'),
+        handler: 'handler',
+        runtime: LambdaRuntime.NODEJS_22_X,
+        architecture: Architecture.ARM_64,
+        timeout: Duration.minutes(2),
+        memorySize: 512,
+        logGroup: timeSeriesLogGroup,
+        depsLockFilePath,
+        bundling: commonBundling,
+        environment: {
+          DATAZONE_DOMAIN_ID: datazoneDomainId,
+          CHRONOS_ENDPOINT_NAME: chronos.endpointName,
+        },
+      });
+
+      timeSeriesFn.addToRolePolicy(datazonePolicy);
+      timeSeriesFn.addToRolePolicy(
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ['sagemaker:InvokeEndpoint'],
+          resources: [
+            `arn:aws:sagemaker:${Stack.of(this).region}:${Stack.of(this).account}:endpoint/${chronos.endpointName}`,
+          ],
+        }),
+      );
+
+      timeSeriesFn.grantInvoke(this.gateway.role);
+
+      this.gateway
+        .addLambdaTarget('TimeSeriesForecastTarget', {
+          gatewayTargetName: 'time-series-forecast',
+          description: 'Chronos-2 による時系列予測（Athena SQL で取得したデータを使う）',
+          lambdaFunction: timeSeriesFn,
+          toolSchema: ToolSchema.fromLocalAsset(join(gatewayToolsDir, 'schemas', 'time-series-forecast-tools.json')),
+        })
+        .with(
+          new CfnGatewayTargetPropsMixin({
+            metadataConfiguration: {
+              allowedRequestHeaders: ['x-sagemaker-project-id', 'x-idc-access-token'],
+            },
+          }),
+        );
+    }
+
     // Policy Engine権限
     this.gateway.role.addToPrincipalPolicy(
       new PolicyStatement({
@@ -317,6 +370,17 @@ export class Agent extends Construct {
       tools: ['cloudtrail-query___cloudtrail_query'],
     });
 
+    if (props.enableTimeSeries) {
+      policyEngine.addPolicy('DataProducersTimeSeries', {
+        group: 'data-producers',
+        tools: ['time-series-forecast___time_series_forecast'],
+      });
+      policyEngine.addPolicy('DataConsumersTimeSeries', {
+        group: 'data-consumers',
+        tools: ['time-series-forecast___time_series_forecast'],
+      });
+    }
+
     // --- Gateway Tracing（Policy Engine 評価ログを aws/spans に出力） ---
     new GatewayTracing(this, 'GatewayTracing', { gateway: this.gateway });
 
@@ -361,6 +425,7 @@ export class Agent extends Construct {
         ...(props.cloudtrailEventDataStoreId && { CLOUDTRAIL_EVENT_DATA_STORE_ID: props.cloudtrailEventDataStoreId }),
         ...(props.database && { DSQL_ENDPOINT: props.database.endpoint }),
         ...(props.idcApplicationArn && { IDC_APPLICATION_ARN: props.idcApplicationArn }),
+        ...(props.enableTimeSeries && { ENABLE_TIME_SERIES: 'true' }),
       },
       lifecycleConfiguration: {
         idleRuntimeSessionTimeout: Duration.minutes(15),
