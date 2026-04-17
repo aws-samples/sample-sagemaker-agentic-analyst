@@ -109,7 +109,7 @@ app.post(['/invocations', /^\/runtimes\/.+\/invocations$/], express.raw({ type: 
     const model = new BedrockModel({
       region: env.AWS_REGION,
       modelId: env.BEDROCK_MODEL_ID,
-      maxTokens: 8192,
+      maxTokens: 32768,
       additionalRequestFields: {
         thinking: { type: 'enabled', budget_tokens: 2048 },
       },
