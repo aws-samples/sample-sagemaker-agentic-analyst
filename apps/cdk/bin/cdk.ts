@@ -49,6 +49,7 @@ new AgenticAnalystStack(app, `${prefix}AgenticAnalyst`, {
   crossRegionReferences: true,
   sharedCertificate: usEast1.certificate,
   domainName: env.DOMAIN_NAME,
+  subDomain: env.SUB_DOMAIN,
   signPayloadHandler: usEast1.signPayloadHandler,
   idcInstanceArn: env.IDC_INSTANCE_ARN,
   identityStoreId: env.IDENTITY_STORE_ID ?? '',

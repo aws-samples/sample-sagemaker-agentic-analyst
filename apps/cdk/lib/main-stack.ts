@@ -36,6 +36,9 @@ export interface AgenticAnalystStackProps extends StackProps {
   /** カスタムドメイン名 */
   readonly domainName?: string;
 
+  /** サブドメイン名（例: 'analyst'）。指定時は {subDomain}.{domainName} でホストされる */
+  readonly subDomain?: string;
+
   /** Bedrockモデル ID（例: jp.anthropic.claude-sonnet-4-6） */
   readonly bedrockModelId?: string;
 
@@ -96,7 +99,7 @@ export class AgenticAnalystStack extends Stack {
       userPool: props.userPool,
       userPoolClient: props.userPoolClient,
       cognitoDomainName: props.cognitoDomainName,
-      subDomain: 'web',
+      subDomain: props.subDomain,
       datazoneDomainId: props.datazoneDomainId,
       agentcoreRuntimeArn: agent.runtime.agentRuntimeArn,
       agentcoreMemoryId: agent.memoryId,

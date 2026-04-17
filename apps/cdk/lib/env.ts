@@ -30,6 +30,7 @@ const envSchema = z.object({
 
   // オプション
   DOMAIN_NAME: z.string().optional(),
+  SUB_DOMAIN: z.string().optional(),
   BEDROCK_MODEL_ID: z.string().optional(),
   ENABLE_TIME_SERIES: z
     .string()
