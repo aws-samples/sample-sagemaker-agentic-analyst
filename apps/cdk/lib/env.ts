@@ -31,6 +31,10 @@ const envSchema = z.object({
   // オプション
   DOMAIN_NAME: z.string().optional(),
   BEDROCK_MODEL_ID: z.string().optional(),
+  ENABLE_TIME_SERIES: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;

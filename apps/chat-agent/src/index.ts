@@ -14,7 +14,7 @@ import type {
 } from '@agentic-analyst/shared-types';
 import { env } from './env.js';
 import { SSOOIDCClient, CreateTokenWithIAMCommand } from '@aws-sdk/client-sso-oidc';
-import { SYSTEM_PROMPT } from './prompt.js';
+import { buildSystemPrompt } from './prompt.js';
 import { SessionPersistenceHook } from './session/session-persistence-hook.js';
 
 function createBearerFetch(jwtToken: string, customProjectId?: string, idcAccessToken?: string) {
@@ -145,7 +145,7 @@ app.post(['/invocations', /^\/runtimes\/.+\/invocations$/], express.raw({ type: 
 
     const agent = new Agent({
       model,
-      systemPrompt: SYSTEM_PROMPT,
+      systemPrompt: buildSystemPrompt(),
       tools,
       hooks: hook ? [hook] : [],
     });

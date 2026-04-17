@@ -61,4 +61,5 @@ new AgenticAnalystStack(app, `${prefix}AgenticAnalyst`, {
   idcApplicationArn: idStore.idcApplicationArn,
   bedrockModelId: env.BEDROCK_MODEL_ID,
   envName,
+  enableTimeSeries: env.ENABLE_TIME_SERIES,
 });

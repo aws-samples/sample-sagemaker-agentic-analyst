@@ -39,11 +39,12 @@ SageMaker Unified Studio (SMUS) で設定したFine-grained Access Control (FGAC
 
 以下の順序で実行してください:
 
-| ステップ | ドキュメント                                          | 内容                                                 | 対象ペルソナ                         |
-| -------- | ----------------------------------------------------- | ---------------------------------------------------- | ------------------------------------ |
-| 1        | [01-deployment.md](docs/01-deployment.md)             | IdC前提条件、CDKデプロイ、SMUSドメイン作成、SAML設定 | 開発者                               |
-| 2        | [02-sagemaker-config.md](docs/02-sagemaker-config.md) | SMUSプロジェクト設定、データ準備、FGAC設定           | インフラ管理者、データプロデューサー |
-| 3        | [03-e2e-testing.md](docs/03-e2e-testing.md)           | E2E検証シナリオ                                      | 全ペルソナ                           |
+| ステップ | ドキュメント                                                  | 内容                                                 | 対象ペルソナ                         |
+| -------- | ------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------ |
+| 1        | [01-deployment.md](docs/01-deployment.md)                     | IdC前提条件、CDKデプロイ、SMUSドメイン作成、SAML設定 | 開発者                               |
+| 2        | [02-sagemaker-config.md](docs/02-sagemaker-config.md)         | SMUSプロジェクト設定、データ準備、FGAC設定           | インフラ管理者、データプロデューサー |
+| 3        | [03-e2e-testing.md](docs/03-e2e-testing.md)                   | E2E検証シナリオ                                      | 全ペルソナ                           |
+| 4 (opt)  | [04-time-series-forecast.md](docs/04-time-series-forecast.md) | Chronos-2 時系列予測機能（opt-in）                   | 開発者                               |
 
 ## 運用上の制約
 
