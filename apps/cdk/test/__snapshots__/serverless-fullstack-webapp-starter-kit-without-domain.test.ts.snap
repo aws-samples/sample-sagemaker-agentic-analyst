@@ -2,7 +2,7 @@
 
 exports[`Snapshot test 1`] = `
 {
-  "Description": "Agentic Analyst - us-east-1 (Lambda@Edge, ACM)",
+  "Description": "Agentic Analyst - us-east-1 (Lambda@Edge, ACM) (uksb-wn9oxpwet9)(tag:us-east-1)",
   "Parameters": {
     "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
@@ -220,7 +220,7 @@ exports[`Snapshot test 1`] = `
 
 exports[`Snapshot test 2`] = `
 {
-  "Description": "Agentic Analyst - Main Stack",
+  "Description": "Agentic Analyst - Main Stack (uksb-wn9oxpwet9)(tag:main)",
   "Outputs": {
     "AgentCoreMemoryId": {
       "Value": {

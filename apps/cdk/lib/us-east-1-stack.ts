@@ -26,7 +26,10 @@ export class AgenticAnalystUsEast1Stack extends cdk.Stack {
   public readonly signPayloadHandler: EdgeFunction;
 
   constructor(scope: Construct, id: string, props: AgenticAnalystUsEast1StackProps) {
-    super(scope, id, { description: 'Agentic Analyst - us-east-1 (Lambda@Edge, ACM)', ...props });
+    super(scope, id, {
+      description: 'Agentic Analyst - us-east-1 (Lambda@Edge, ACM) (uksb-wn9oxpwet9)(tag:us-east-1)',
+      ...props,
+    });
 
     if (props.domainName) {
       const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {

@@ -41,7 +41,10 @@ export class AgenticAnalystIdStoreStack extends Stack {
   readonly idcApplicationArn?: string;
 
   constructor(scope: Construct, id: string, props: AgenticAnalystIdStoreStackProps) {
-    super(scope, id, { description: 'Agentic Analyst - Identity Store (Cognito)', ...props });
+    super(scope, id, {
+      description: 'Agentic Analyst - Identity Store (Cognito) (uksb-wn9oxpwet9)(tag:idstore)',
+      ...props,
+    });
 
     const hostedZone = props.domainName
       ? HostedZone.fromLookup(this, 'HostedZone', { domainName: props.domainName })

@@ -59,7 +59,7 @@ export interface AgenticAnalystStackProps extends StackProps {
 
 export class AgenticAnalystStack extends Stack {
   constructor(scope: Construct, id: string, props: AgenticAnalystStackProps) {
-    super(scope, id, { description: 'Agentic Analyst - Main Stack', ...props });
+    super(scope, id, { description: 'Agentic Analyst - Main Stack (uksb-wn9oxpwet9)(tag:main)', ...props });
 
     const hostedZone = props.domainName
       ? HostedZone.fromLookup(this, 'HostedZone', { domainName: props.domainName })
