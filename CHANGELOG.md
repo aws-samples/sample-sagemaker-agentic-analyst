@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/aws-samples/sample-sagemaker-agentic-analyst/compare/v1.0.0...v1.1.0) (2026-05-28)
+
+
+### Features
+
+* add time_series_forecast tool with Chronos-2 ([#3](https://github.com/aws-samples/sample-sagemaker-agentic-analyst/issues/3)) ([08df5f3](https://github.com/aws-samples/sample-sagemaker-agentic-analyst/commit/08df5f362d42c16cc3b1f2bcd339081a0d92eb43))
+* **cdk:** make webapp subdomain configurable via SUB_DOMAIN env var ([2ac6db5](https://github.com/aws-samples/sample-sagemaker-agentic-analyst/commit/2ac6db5ad36170f85e714bb81f0b50402e77b225))
+
+
+### Bug Fixes
+
+* **chat-agent:** increase maxTokens from 8192 to 32768 ([1708a03](https://github.com/aws-samples/sample-sagemaker-agentic-analyst/commit/1708a03a9e0b80ba3858a291f1195e7ff74da59c))
+
 ## 1.0.0 (2026-04-17)
 
 
