@@ -27,7 +27,7 @@
     "@aws-sdk/client-s3-control": "^3.1029.0",
     "@aws-sdk/client-sagemaker-runtime": "^3.1029.0",
     "@types/aws-lambda": "^8.10.161",
-    "@types/node": "^22.19.17",
+    "@types/node": "^25.9.3",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }
