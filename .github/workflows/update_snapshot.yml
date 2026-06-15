@@ -13,18 +13,18 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Use Node.js
         uses: actions/setup-node@v6
         with:
           node-version: "22.x"
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
         name: Install dependencies
       - run: pnpm run test -- --update
         working-directory: ./apps/cdk
       - name: Add & Commit
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v10
         with:
           add: "apps/cdk/test/__snapshots__/."
           message: "chore: update snapshot"
