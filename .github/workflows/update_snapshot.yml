@@ -4,10 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-       - 'dependabot/**'
+      - 'dependabot/**'
 
 permissions:
   contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -20,10 +21,10 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile
         name: Install dependencies
-      - run: pnpm run test -- -u
+      - run: pnpm run test -- --update
         working-directory: ./apps/cdk
       - name: Add & Commit
-        uses: EndBug/add-and-commit@v7.2.0
+        uses: EndBug/add-and-commit@v9
         with:
           add: "apps/cdk/test/__snapshots__/."
-          message: "update snapshot"
+          message: "chore: update snapshot"
