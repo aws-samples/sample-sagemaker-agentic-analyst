@@ -20,8 +20,8 @@
     "@aws-cdk/mixins-preview": "2.241.0-alpha.0",
     "@aws-sdk/client-bedrock-agentcore-control": "^3.1029.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.1029.0",
-    "@cdklabs/deploy-time-build": "^0.1.2",
-    "@types/aws-lambda": "^8.10.161",
+    "@cdklabs/deploy-time-build": "^0.1.5",
+    "@types/aws-lambda": "^8.10.162",
     "aws-cdk-lib": "^2.248.0",
     "cdk-nag": "^2.37.55",
     "constructs": "^10.6.0",
@@ -30,12 +30,12 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/jest": "^27.5.2",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.19.17",
-    "aws-cdk": "^2.1118.0",
-    "esbuild": "^0.25.12",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.9",
+    "aws-cdk": "^2.1126.0",
+    "esbuild": "^0.28.1",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
