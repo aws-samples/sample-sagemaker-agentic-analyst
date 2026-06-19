@@ -33,7 +33,8 @@
       "unrs-resolver"
     ],
     "overrides": {
-      "hono": ">=4.12.14"
+      "hono": ">=4.12.14",
+      "dompurify": ">=3.4.11"
     }
   }
 }
