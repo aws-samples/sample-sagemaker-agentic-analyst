@@ -22,7 +22,7 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.1029.0",
     "@cdklabs/deploy-time-build": "^0.1.2",
     "@types/aws-lambda": "^8.10.161",
-    "aws-cdk-lib": "^2.248.0",
+    "aws-cdk-lib": "^2.260.0",
     "cdk-nag": "^2.37.55",
     "constructs": "^10.6.0",
     "dotenv": "^17.4.2",
