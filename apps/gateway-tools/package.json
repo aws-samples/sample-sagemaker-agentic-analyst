@@ -16,7 +16,7 @@
     "@agentic-analyst/datazone-auth": "workspace:*",
     "@agentic-analyst/shared-types": "workspace:*",
     "@aws-sdk/client-sso-oidc": "^3.1029.0",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@aws-sdk/client-athena": "^3.1029.0",
