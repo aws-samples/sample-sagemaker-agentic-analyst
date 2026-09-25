@@ -6,6 +6,10 @@ vi.mock('@aws-sdk/client-datazone', () => ({
   SearchListingsCommand: vi.fn((input: unknown) => ({ _type: 'SearchListings', input })),
   ListSubscriptionsCommand: vi.fn((input: unknown) => ({ _type: 'ListSubscriptions', input })),
   GetListingCommand: vi.fn((input: unknown) => ({ _type: 'GetListing', input })),
+  BatchGetAttributesMetadataCommand: vi.fn((input: unknown) => ({ _type: 'BatchGetAttributesMetadata', input })),
+  GetGlossaryTermCommand: vi.fn((input: unknown) => ({ _type: 'GetGlossaryTerm', input })),
+  GetGlossaryCommand: vi.fn((input: unknown) => ({ _type: 'GetGlossary', input })),
+  GetFormTypeCommand: vi.fn((input: unknown) => ({ _type: 'GetFormType', input })),
   CreateSubscriptionRequestCommand: vi.fn((input: unknown) => ({ _type: 'CreateSubscriptionRequest', input })),
   ListSubscriptionRequestsCommand: vi.fn((input: unknown) => ({ _type: 'ListSubscriptionRequests', input })),
   AcceptSubscriptionRequestCommand: vi.fn((input: unknown) => ({ _type: 'AcceptSubscriptionRequest', input })),
@@ -32,7 +36,7 @@ vi.mock('@agentic-analyst/datazone-auth', () => ({
   }),
 }));
 
-import { handler } from '../../data-catalog/index';
+import { handler, CATALOG_CONTENT_NOTICE } from '../../data-catalog/index';
 
 function ctx(toolName: string, opts?: { projectId?: string; idcAccessToken?: string }) {
   const headers: Record<string, string> = {};
@@ -403,6 +407,23 @@ describe('catalog_list_subscriptions', () => {
   });
 });
 
+describe('SearchListings additionalAttributes (R5)', () => {
+  it('catalog_searchとcatalog_list_subscriptionsのSearchListings呼び出しはadditionalAttributes: ["FORMS"]を渡す', async () => {
+    mockSend.mockResolvedValue({ items: [] });
+
+    await handler({ query: 'test' }, ctx('catalog_search', { projectId: 'proj-1' }));
+    await handler({}, ctx('catalog_list_subscriptions', { projectId: 'proj-1' }));
+
+    const searchListingsCalls = mockSend.mock.calls
+      .map(([cmd]) => cmd as { _type: string; input: Record<string, unknown> })
+      .filter((cmd) => cmd._type === 'SearchListings');
+    expect(searchListingsCalls).toHaveLength(2);
+    for (const cmd of searchListingsCalls) {
+      expect(cmd.input.additionalAttributes).toEqual(['FORMS']);
+    }
+  });
+});
+
 describe('catalog_detail', () => {
   it('GlueTableFormからスキーマ情報を抽出する', async () => {
     mockSend.mockResolvedValueOnce({
@@ -421,6 +442,8 @@ describe('catalog_detail', () => {
         },
       },
     });
+    // BatchGetAttributesMetadata（カラムビジネスメタデータなしのケース）
+    mockSend.mockResolvedValueOnce({ attributes: [], errors: [] });
 
     const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
     const content = JSON.parse(result.result!.content[0].text);
@@ -447,10 +470,380 @@ describe('catalog_detail', () => {
         },
       },
     });
+    // BatchGetAttributesMetadata（カラムビジネスメタデータなしのケース）
+    mockSend.mockResolvedValueOnce({ attributes: [], errors: [] });
 
     const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
     const content = JSON.parse(result.result!.content[0].text);
     expect(content.tableName).toBe('store_details');
+  });
+
+  it('リスティング単位のビジネスメタデータ(R1)を返し、システム管理formは除く（stg実測形状のfixture）', async () => {
+    const glossaryTermIds = ['gt-store', 'gt-sales', 'gt-region'];
+    const forms = {
+      DataSourceReferenceForm: JSON.stringify({ dataSourceId: 'ds-1' }),
+      'AwsConfigurationForm.region': 'ap-northeast-1',
+      'AwsConfigurationForm.accountId': '123456789012',
+      AssetCommonDetailsForm: JSON.stringify({ realmId: 'realm-1' }),
+      hasAttached: JSON.stringify(['an40pk82b5kl5l']),
+      GlueTableForm: JSON.stringify({
+        tableName: 'retail_sales_performance',
+        databaseName: 'demo_salesdb',
+        columns: [{ columnName: 'store_id', dataType: 'string' }],
+      }),
+      ListingSubscriberCountFormType: JSON.stringify({ subscriberCount: 3 }),
+      DataOwnershipForm: JSON.stringify({
+        dataOwner: 'Sales Operations',
+        updateFrequency: 'daily',
+        dataClassification: 'internal',
+      }),
+      SubscriptionTermsForm: JSON.stringify({ termsAndConditions: 'must not redistribute' }),
+      __DataZoneGlossaryTerms: JSON.stringify([...glossaryTermIds, 'gt-store']),
+    };
+
+    mockSend.mockResolvedValueOnce({
+      name: 'retail_sales_performance',
+      description: '店舗別の販売数量。',
+      item: {
+        assetListing: {
+          assetId: '4j1xf2tfqn4xi1',
+          assetRevision: '8',
+          assetType: 'GlueTableAssetType',
+          glossaryTerms: [
+            { name: 'Store', shortDescription: '店舗を表す用語' },
+            { name: 'Sales', shortDescription: '販売を表す用語' },
+            { name: 'Region', shortDescription: '地域を表す用語' },
+          ],
+          governedGlossaryTerms: [],
+          forms: JSON.stringify(forms),
+        },
+      },
+    });
+    // BatchGetAttributesMetadata（カラムビジネスメタデータなしのケース）
+    mockSend.mockResolvedValueOnce({ attributes: [], errors: [] });
+
+    const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
+    const content = JSON.parse(result.result!.content[0].text);
+
+    // プロデューサーが書いた文字列を指示として扱わせないための注記
+    expect(content.notice).toBe(CATALOG_CONTENT_NOTICE);
+    // 追加欄
+    expect(content.name).toBe('retail_sales_performance');
+    expect(content.description).toBe('店舗別の販売数量。');
+    expect(content.assetId).toBe('4j1xf2tfqn4xi1');
+    expect(content.assetRevision).toBe('8');
+    expect(content.assetType).toBe('GlueTableAssetType');
+    expect(content.glossaryTerms).toEqual([
+      { name: 'Store', shortDescription: '店舗を表す用語' },
+      { name: 'Sales', shortDescription: '販売を表す用語' },
+      { name: 'Region', shortDescription: '地域を表す用語' },
+    ]);
+    // governedGlossaryTermsは空配列なので省かれる
+    expect(content.governedGlossaryTerms).toBeUndefined();
+    // glossaryTermIdsはforms由来で、glossaryTermsとは別欄（順序で対応付けない）
+    expect(content.glossaryTermIds).toEqual(glossaryTermIds);
+
+    // 既存欄は変わらない
+    expect(content.tableName).toBe('retail_sales_performance');
+    expect(content.databaseName).toBe('demo_salesdb');
+    expect(content.columns).toEqual([{ columnName: 'store_id', dataType: 'string' }]);
+
+    // forms欄にはDataOwnershipFormだけが残る（除外リスト・専用欄は落ちる）
+    expect(content.forms).toEqual({
+      DataOwnershipForm: {
+        dataOwner: 'Sales Operations',
+        updateFrequency: 'daily',
+        dataClassification: 'internal',
+      },
+    });
+  });
+
+  it('GlueTableFormもS3ObjectCollectionFormも無いリスティングでもビジネスメタデータを返す', async () => {
+    mockSend.mockResolvedValueOnce({
+      name: 'some_model',
+      description: 'モデルの説明',
+      item: {
+        assetListing: {
+          assetId: 'asset-1',
+          assetType: 'BedrockModelAssetType',
+          forms: JSON.stringify({
+            AssetCommonDetailsForm: JSON.stringify({ realmId: 'realm-1' }),
+            CustomForm: JSON.stringify({ note: 'カスタムフォーム' }),
+          }),
+        },
+      },
+    });
+
+    const result = await handler({ listingId: 'listing-2' }, ctx('catalog_detail'));
+    const content = JSON.parse(result.result!.content[0].text);
+
+    expect(content.name).toBe('some_model');
+    expect(content.assetId).toBe('asset-1');
+    expect(content.forms).toEqual({ CustomForm: { note: 'カスタムフォーム' } });
+    expect(content.tableName).toBeUndefined();
+    expect(content.bucketName).toBeUndefined();
+  });
+
+  it('JSON.parseに失敗するform値は生の文字列のまま保持する', async () => {
+    mockSend.mockResolvedValueOnce({
+      item: {
+        assetListing: {
+          forms: JSON.stringify({
+            CustomForm: 'not-json-{',
+          }),
+        },
+      },
+    });
+
+    const result = await handler({ listingId: 'listing-3' }, ctx('catalog_detail'));
+    const content = JSON.parse(result.result!.content[0].text);
+
+    expect(content.forms).toEqual({ CustomForm: 'not-json-{' });
+  });
+
+  describe('カラム単位のビジネスメタデータ(R2)とBatchGetAttributesMetadata障害耐性(R6)', () => {
+    /** GlueTableFormを含むGetListingレスポンスを組み立てる（ColumnBusinessMetadataFormは省略可） */
+    function glueListingResponse(
+      columns: { columnName: string; dataType: string }[],
+      columnBusinessMetadata?: unknown,
+    ) {
+      return {
+        item: {
+          assetListing: {
+            listingRevision: 'rev-1',
+            forms: JSON.stringify({
+              GlueTableForm: JSON.stringify({ tableName: 't', databaseName: 'db', columns }),
+              ...(columnBusinessMetadata !== undefined && {
+                ColumnBusinessMetadataForm: JSON.stringify({ columnsBusinessMetadata: columnBusinessMetadata }),
+              }),
+            }),
+          },
+        },
+      };
+    }
+
+    it('ColumnBusinessMetadataFormのcolumnsBusinessMetadataをcolumnIdentifierでマッチし、businessName/description/glossaryTermsを付加する', async () => {
+      mockSend.mockResolvedValueOnce(
+        glueListingResponse(
+          [
+            { columnName: 'store_id', dataType: 'string' },
+            { columnName: 'sales_amount', dataType: 'double' },
+            { columnName: 'date', dataType: 'date' },
+          ],
+          [
+            {
+              columnIdentifier: 'store_id',
+              name: '店舗ID',
+              description: '店舗を一意に識別するID',
+              glossaryTerms: [
+                { BusinessGlossaryTermForm: { name: 'Store' }, amazonmetadata: { entityId: 'an40pk82b5kl5l' } },
+              ],
+            },
+            {
+              columnIdentifier: 'sales_amount',
+              name: '売上金額',
+              glossaryTerms: ['gt-plain-id'],
+            },
+          ],
+        ),
+      );
+      // BGAM: 3カラム <= 5なので1チャンク。store_idにformsを付与、他は空
+      mockSend.mockResolvedValueOnce({
+        attributes: [
+          {
+            attributeIdentifier: 'store_id',
+            forms: [{ formName: 'SomeForm', content: JSON.stringify({ foo: 'bar' }) }],
+          },
+        ],
+        errors: [],
+      });
+
+      const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
+      const content = JSON.parse(result.result!.content[0].text);
+
+      expect(content.columns).toEqual([
+        {
+          columnName: 'store_id',
+          dataType: 'string',
+          businessName: '店舗ID',
+          description: '店舗を一意に識別するID',
+          glossaryTerms: [{ id: 'an40pk82b5kl5l', name: 'Store' }],
+          forms: { SomeForm: { foo: 'bar' } },
+        },
+        {
+          columnName: 'sales_amount',
+          dataType: 'double',
+          businessName: '売上金額',
+          glossaryTerms: [{ id: 'gt-plain-id' }],
+        },
+        { columnName: 'date', dataType: 'date' },
+      ]);
+      expect(content.unavailable).toBeUndefined();
+    });
+
+    it('カラムが5件を超える場合はBatchGetAttributesMetadataを5件ずつのチャンクに分けて呼び出す', async () => {
+      const columns = Array.from({ length: 6 }, (_, i) => ({ columnName: `col${i}`, dataType: 'string' }));
+      mockSend.mockResolvedValueOnce(glueListingResponse(columns));
+      mockSend.mockResolvedValueOnce({ attributes: [], errors: [] });
+      mockSend.mockResolvedValueOnce({ attributes: [], errors: [] });
+
+      const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
+      JSON.parse(result.result!.content[0].text);
+
+      const bgamCalls = mockSend.mock.calls
+        .map(([cmd]) => cmd as { _type: string; input: { attributeIdentifiers: string[] } })
+        .filter((cmd) => cmd._type === 'BatchGetAttributesMetadata');
+      expect(bgamCalls).toHaveLength(2);
+      expect(bgamCalls[0].input.attributeIdentifiers).toHaveLength(5);
+      expect(bgamCalls[1].input.attributeIdentifiers).toHaveLength(1);
+    });
+
+    it('BatchGetAttributesMetadataの呼び出しがreject（AccessDenied等）でもcolumnsは返しunavailableに積む', async () => {
+      mockSend.mockResolvedValueOnce(
+        glueListingResponse([
+          { columnName: 'store_id', dataType: 'string' },
+          { columnName: 'sales_amount', dataType: 'double' },
+        ]),
+      );
+      mockSend.mockRejectedValueOnce(
+        Object.assign(new Error('User is not authorized'), { name: 'AccessDeniedException' }),
+      );
+
+      const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
+      const content = JSON.parse(result.result!.content[0].text);
+
+      expect(content.columns).toEqual([
+        { columnName: 'store_id', dataType: 'string' },
+        { columnName: 'sales_amount', dataType: 'double' },
+      ]);
+      expect(content.unavailable).toHaveLength(1);
+      expect(content.unavailable[0].item).toContain('columnMetadata:');
+      expect(content.unavailable[0].reason).toContain('AccessDeniedException');
+    });
+
+    it('BatchGetAttributesMetadataのレスポンスのerrors[]に載ったカラムはunavailableに積み、他のカラムは反映する', async () => {
+      mockSend.mockResolvedValueOnce(
+        glueListingResponse([
+          { columnName: 'store_id', dataType: 'string' },
+          { columnName: 'date', dataType: 'date' },
+        ]),
+      );
+      mockSend.mockResolvedValueOnce({
+        attributes: [
+          {
+            attributeIdentifier: 'store_id',
+            forms: [{ formName: 'SomeForm', content: JSON.stringify({ foo: 'bar' }) }],
+          },
+        ],
+        errors: [{ attributeIdentifier: 'date', code: 'AccessDeniedException', message: 'no access' }],
+      });
+
+      const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
+      const content = JSON.parse(result.result!.content[0].text);
+
+      expect(content.columns).toEqual([
+        { columnName: 'store_id', dataType: 'string', forms: { SomeForm: { foo: 'bar' } } },
+        { columnName: 'date', dataType: 'date' },
+      ]);
+      expect(content.unavailable).toEqual([
+        { item: 'columnMetadata:date', reason: 'AccessDeniedException: no access' },
+      ]);
+    });
+
+    it('メタデータを持たないカラムの404はunavailableに積まない', async () => {
+      mockSend.mockResolvedValueOnce(glueListingResponse([{ columnName: 'date', dataType: 'date' }]));
+      mockSend.mockResolvedValueOnce({
+        attributes: [],
+        errors: [{ attributeIdentifier: 'date', code: '404', message: "Attribute 'date' not found" }],
+      });
+
+      const result = await handler({ listingId: 'listing-1' }, ctx('catalog_detail'));
+      const content = JSON.parse(result.result!.content[0].text);
+
+      expect(content.columns).toEqual([{ columnName: 'date', dataType: 'date' }]);
+      expect(content.unavailable).toBeUndefined();
+    });
+  });
+});
+
+describe('catalog_definition', () => {
+  it('glossaryTermIdを指定すると用語と所属用語集を返す', async () => {
+    mockSend.mockResolvedValueOnce({
+      id: 'gt-store',
+      glossaryId: 'glossary-1',
+      name: 'Store',
+      shortDescription: '店舗を表す用語',
+      longDescription: '店舗はSAP MMで管理される販売拠点を指す。',
+    });
+    mockSend.mockResolvedValueOnce({
+      id: 'glossary-1',
+      name: 'Sales Business Glossary',
+      description: '販売業務の用語集',
+    });
+
+    const result = await handler({ glossaryTermId: 'gt-store' }, ctx('catalog_definition'));
+    const content = JSON.parse(result.result!.content[0].text);
+
+    expect(content).toMatchObject({
+      notice: CATALOG_CONTENT_NOTICE,
+      id: 'gt-store',
+      name: 'Store',
+      shortDescription: '店舗を表す用語',
+      longDescription: '店舗はSAP MMで管理される販売拠点を指す。',
+      glossary: { id: 'glossary-1', name: 'Sales Business Glossary', description: '販売業務の用語集' },
+    });
+    expect(content.unavailable).toBeUndefined();
+  });
+
+  it('GetGlossaryが失敗しても用語は返し、unavailableにglossaryを積む', async () => {
+    mockSend.mockResolvedValueOnce({
+      id: 'gt-store',
+      glossaryId: 'glossary-1',
+      name: 'Store',
+      shortDescription: '店舗を表す用語',
+    });
+    mockSend.mockRejectedValueOnce(Object.assign(new Error('not found'), { name: 'ResourceNotFoundException' }));
+
+    const result = await handler({ glossaryTermId: 'gt-store' }, ctx('catalog_definition'));
+    const content = JSON.parse(result.result!.content[0].text);
+
+    expect(content).toMatchObject({ id: 'gt-store', name: 'Store', shortDescription: '店舗を表す用語' });
+    expect(content.glossary).toBeUndefined();
+    expect(content.unavailable).toEqual([{ item: 'glossary', reason: 'ResourceNotFoundException: not found' }]);
+  });
+
+  it('formTypeNameを指定するとフォーム定義（smithyモデル）を返す', async () => {
+    mockSend.mockResolvedValueOnce({
+      name: 'DataOwnershipForm',
+      revision: '1',
+      description: 'データ所有者情報',
+      model: { smithy: 'structure DataOwnershipForm {\n  @documentation("data owner")\n  dataOwner: String\n}' },
+    });
+
+    const result = await handler({ formTypeName: 'DataOwnershipForm' }, ctx('catalog_definition'));
+    const content = JSON.parse(result.result!.content[0].text);
+
+    expect(content.name).toBe('DataOwnershipForm');
+    expect(content.revision).toBe('1');
+    expect(content.description).toBe('データ所有者情報');
+    expect(content.model).toContain('dataOwner');
+  });
+
+  it('glossaryTermIdとformTypeNameを両方指定すると-32602', async () => {
+    const result = await handler(
+      { glossaryTermId: 'gt-store', formTypeName: 'DataOwnershipForm' },
+      ctx('catalog_definition'),
+    );
+    expect(result.error).toBeDefined();
+    expect(result.error!.code).toBe(-32602);
+    expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  it('glossaryTermIdもformTypeNameも指定しないと-32602', async () => {
+    const result = await handler({}, ctx('catalog_definition'));
+    expect(result.error).toBeDefined();
+    expect(result.error!.code).toBe(-32602);
+    expect(mockSend).not.toHaveBeenCalled();
   });
 });
 
