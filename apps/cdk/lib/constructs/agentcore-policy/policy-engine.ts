@@ -93,6 +93,20 @@ export class PolicyEngine extends Construct {
       }),
     );
 
+    // UpdatePolicy は policy の action を呼び出し元の権限で Gateway の target・ツール定義と照合する。
+    // stg で ListGatewayTargets、続いて Gateway 呼び出しの権限不足で失敗した（2026-09-25）。
+    // Resource Management Role の必要権限（AgentCore devguide policy-permissions）に合わせる
+    onEventHandler.addToRolePolicy(
+      new PolicyStatement({
+        actions: [
+          'bedrock-agentcore:ListGatewayTargets',
+          'bedrock-agentcore:GetGatewayTarget',
+          'bedrock-agentcore:InvokeGateway',
+        ],
+        resources: [props.gateway.gatewayArn],
+      }),
+    );
+
     onEventHandler.addToRolePolicy(
       new PolicyStatement({
         actions: ['iam:PassRole'],

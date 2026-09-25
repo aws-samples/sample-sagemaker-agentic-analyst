@@ -53,7 +53,7 @@ export interface AgentProps {
  *
  * Lambda統合:
  * - data-access: athena_query + s3_read + s3_list（DZ認証フロー共有）
- * - data-catalog: catalog_search + catalog_detail + subscription_*（カタログ読み取り + Subscription管理）
+ * - data-catalog: catalog_search + catalog_detail + catalog_definition + subscription_*（カタログ読み取り + Subscription管理）
  * - cloudtrail: cloudtrail_query（独立した認証・権限体系）
  */
 export class Agent extends Construct {
@@ -156,7 +156,7 @@ export class Agent extends Construct {
       );
 
     // --- Tool Lambda: data-catalog (catalog + subscription管理) ---
-    // catalog_search/catalog_detail: Lambda実行ロールで動作（読み取り専用）
+    // catalog_search/catalog_detail/catalog_definition: Lambda実行ロールで動作（読み取り専用）
     // subscription_*: RedeemAccessTokenフローでDER認証情報を取得しユーザーのIdCアイデンティティで動作
     const dataCatalogLogGroup = new LogGroup(this, 'DataCatalogLogs', { retention: RetentionDays.ONE_WEEK });
     const dataCatalogFn = new NodejsFunction(this, 'DataCatalog', {
@@ -174,10 +174,18 @@ export class Agent extends Construct {
       },
     });
 
-    // catalog_search/catalog_detail用（Lambda実行ロール）
+    // catalog_search/catalog_detail/catalog_definition用（Lambda実行ロール）
     dataCatalogFn.addToRolePolicy(
       new PolicyStatement({
-        actions: ['datazone:SearchListings', 'datazone:ListSubscriptions', 'datazone:GetListing'],
+        actions: [
+          'datazone:SearchListings',
+          'datazone:ListSubscriptions',
+          'datazone:GetListing',
+          'datazone:BatchGetAttributesMetadata',
+          'datazone:GetGlossaryTerm',
+          'datazone:GetGlossary',
+          'datazone:GetFormType',
+        ],
         resources: ['*'],
       }),
     );
@@ -324,6 +332,7 @@ export class Agent extends Construct {
       tools: [
         'data-catalog___catalog_search',
         'data-catalog___catalog_detail',
+        'data-catalog___catalog_definition',
         'data-catalog___catalog_list_subscriptions',
       ],
     });
@@ -338,6 +347,7 @@ export class Agent extends Construct {
       tools: [
         'data-catalog___catalog_search',
         'data-catalog___catalog_detail',
+        'data-catalog___catalog_definition',
         'data-catalog___catalog_list_subscriptions',
       ],
     });

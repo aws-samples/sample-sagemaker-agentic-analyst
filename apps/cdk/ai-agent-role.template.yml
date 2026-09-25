@@ -154,6 +154,8 @@ Resources:
                 Action:
                   - datazone:GetConnection
                   - datazone:ListConnections
+                  # 統合テストで catalog_detail のカラム単位メタデータを読む
+                  - datazone:BatchGetAttributesMetadata
                 Resource: '*'
 
               # 調査クエリではなく credential vending。環境ユーザーロールの一時認証情報を返す。

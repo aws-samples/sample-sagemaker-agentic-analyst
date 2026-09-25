@@ -983,6 +983,10 @@ exports[`Snapshot test 2`] = `
                 "datazone:SearchListings",
                 "datazone:ListSubscriptions",
                 "datazone:GetListing",
+                "datazone:BatchGetAttributesMetadata",
+                "datazone:GetGlossaryTerm",
+                "datazone:GetGlossary",
+                "datazone:GetFormType",
               ],
               "Effect": "Allow",
               "Resource": "*",
@@ -1479,7 +1483,7 @@ exports[`Snapshot test 2`] = `
               },
               "ToolSchema": {
                 "S3": {
-                  "Uri": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/f4bffa118cff8349a54b26b24fdc93b4a794bae816b7ced763b7e54a3d36e27c.json",
+                  "Uri": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/c116d675355abbbb99355cd11df9b5bd7e76af88481f9d6525c0aa2f754060ff.json",
                 },
               },
             },
@@ -1780,6 +1784,7 @@ exports[`Snapshot test 2`] = `
   principal.getTag("cedar_groups") like "*|data-producers|*" &&
   (action == AgentCore::Action::"data-catalog___catalog_search" ||
    action == AgentCore::Action::"data-catalog___catalog_detail" ||
+   action == AgentCore::Action::"data-catalog___catalog_definition" ||
    action == AgentCore::Action::"data-catalog___catalog_list_subscriptions")
 };",
                 ],
@@ -1834,6 +1839,7 @@ exports[`Snapshot test 2`] = `
   principal.getTag("cedar_groups") like "*|data-consumers|*" &&
   (action == AgentCore::Action::"data-catalog___catalog_search" ||
    action == AgentCore::Action::"data-catalog___catalog_detail" ||
+   action == AgentCore::Action::"data-catalog___catalog_definition" ||
    action == AgentCore::Action::"data-catalog___catalog_list_subscriptions")
 };",
                 ],
@@ -2014,6 +2020,20 @@ exports[`Snapshot test 2`] = `
               ],
               "Effect": "Allow",
               "Resource": "*",
+            },
+            {
+              "Action": [
+                "bedrock-agentcore:ListGatewayTargets",
+                "bedrock-agentcore:GetGatewayTarget",
+                "bedrock-agentcore:InvokeGateway",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AgentJwtGateway16180A67",
+                  "GatewayArn",
+                ],
+              },
             },
             {
               "Action": "iam:PassRole",
