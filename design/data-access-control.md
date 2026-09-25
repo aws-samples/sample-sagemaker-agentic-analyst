@@ -228,11 +228,13 @@ sequenceDiagram
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | ドメインに公開されたもの               | 公開済みリスティング（`SearchListings` / `GetListing`）、リスティング単位の属性メタデータ（`BatchGetAttributesMetadata` の `entityType=LISTING`）、用語集・用語（`GetGlossary` / `GetGlossaryTerm`）、フォーム定義（`GetFormType`） | 読む                                                            |
 | プロジェクトメンバーだけが見られるもの | アセット（インベントリ。未公開のフォーム・リビジョンを含む）: `GetAsset`、`BatchGetAttributesMetadata` の `entityType=ASSET`、`Search`（`searchScope=ASSET`）                                                                       | 読まない。必要ならDER認証情報（ユーザーのメンバーシップ）で呼ぶ |
-| ユーザー単位の操作                     | Subscription操作、`GetEnvironmentCredentials`                                                                                                                                                                                       | 読まない。DER認証情報で呼ぶ                                     |
+| ユーザー単位の操作                     | Subscriptionの作成・承認・拒否・取消・撤回（`subscription_*`）、`GetEnvironmentCredentials`                                                                                                                                         | 読まない。DER認証情報で呼ぶ                                     |
 
-後者の区分をLambda実行ロールで読めるようにするには、実行ロールをプロジェクトメンバーに登録するしかない。そうするとユーザーのメンバーシップと無関係に未公開メタデータを返すことになり、「Lambda実行ロールを全プロジェクトのメンバーに登録する方式」と同じ理由で認可が崩れる。
+`catalog_search` / `catalog_list_subscriptions` が購読済み判定に使う `ListSubscriptions`（`owningProjectId` で絞った購読一覧の読み取り）は、Subscription操作ではなくLambda実行ロールで呼ぶ既存の読み取りである。
 
-観測（stg、2026-09-25）: DataZoneのユーザープロファイルを持たずどのプロジェクトにも属さないIAMロールで、`GetListing`、他プロジェクト所有の `GetGlossary` / `GetGlossaryTerm`、`GetFormType` は成功し、`GetAsset` は `User is not permitted to perform operation` で拒否された。`BatchGetAttributesMetadata` はIAMで拒否されたため、DataZone側の認可は未観測。
+2 番目の区分をLambda実行ロールで読めるようにするには、実行ロールをプロジェクトメンバーに登録するしかない。そうするとユーザーのメンバーシップと無関係に未公開メタデータを返すことになり、「Lambda実行ロールを全プロジェクトのメンバーに登録する方式」と同じ理由で認可が崩れる。
+
+観測（stg、2026-09-25）: DataZoneのユーザープロファイルを持たずどのプロジェクトにも属さないIAMロールで、`GetListing`、他プロジェクト所有の `GetGlossary` / `GetGlossaryTerm`、`GetFormType` は成功し、`GetAsset` は `User is not permitted to perform operation` で拒否された。同日、stgにデプロイしたdata-catalog Lambdaの実行ロールで `BatchGetAttributesMetadata`（`entityType=LISTING`）を呼び、他プロジェクト所有リスティングのカラム単位フォームを取得できた。
 
 前提: ドメイン内のすべてのユーザーが公開済みリスティング・用語集・フォーム定義を閲覧できること。SMUSでユーザーごとに見える範囲が絞られる設定がある場合、Lambda実行ロールはユーザーに見えないものを返しうる。stgでは、どのプロジェクトにも属さないSMUSユーザー（`dg-business-analyst`）がSMUSのカタログ画面で、他プロジェクト所有リスティングの説明文・用語・メタデータフォーム、カラムのビジネス名・説明・カラム単位のメタデータフォーム、用語集と用語の長い説明をすべて閲覧できた（2026-09-25）。
 
