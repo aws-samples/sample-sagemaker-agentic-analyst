@@ -11,7 +11,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess'
@@ -48,16 +48,18 @@ Resources:
                   StringEquals:
                     aws:ResourceTag/Application: Agentic Analyst
 
+              # S3 汎用バケットの ABAC は既定で無効なので aws:ResourceTag は効かない。
+              # CDK が自動命名するバケット名（<env>-agenticanalyst-... / agenticanalyst-...）で絞る。
               - Sid: S3ObjectAccess
                 Effect: Allow
                 Action:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:DeleteObject
-                Resource: '*'
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::*agenticanalyst-*/*'
                 Condition:
                   StringEquals:
-                    aws:ResourceTag/Application: Agentic Analyst
+                    aws:ResourceAccount: !Ref AWS::AccountId
 
               - Sid: CdkStagingBucketAccess
                 Effect: Allow
@@ -81,6 +83,26 @@ Resources:
                 Condition:
                   StringEquals:
                     aws:ResourceTag/Application: Agentic Analyst
+
+              # ローカルの chat-agent / webapp がセッション履歴を AgentCore Memory に書く
+              # （apps/chat-agent/src/session/agentcore-memory-storage.ts, apps/webapp/src/app/api/sessions/route.ts）
+              - Sid: AgentCoreMemoryEvents
+                Effect: Allow
+                Action:
+                  - bedrock-agentcore:CreateEvent
+                  - bedrock-agentcore:DeleteEvent
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    aws:ResourceTag/Application: Agentic Analyst
+
+              # Cognito ID Token → IdC Access Token の交換（apps/chat-agent/src/index.ts, packages/datazone-auth/src/project-credentials.ts）。
+              # IdC Application は手動作成でタグが無いので、アカウント内の Application ARN で絞る。
+              - Sid: IdcTokenExchange
+                Effect: Allow
+                Action:
+                  - sso-oauth:CreateTokenWithIAM
+                Resource: !Sub 'arn:${AWS::Partition}:sso::${AWS::AccountId}:application/*'
 
         - PolicyName: OperationalAccessGlobal
           PolicyDocument:
@@ -110,36 +132,37 @@ Resources:
                   - athena:StopQueryExecution
                 Resource: '*'
 
-              - Sid: BedrockAccess
+              - Sid: BedrockRuntime
                 Effect: Allow
                 Action:
                   - bedrock:InvokeModel
                   - bedrock:InvokeModelWithResponseStream
-                  - bedrock:ListFoundationModels
-                  - bedrock:GetFoundationModel
-                  - bedrock:ListInferenceProfiles
-                  - bedrock:GetInferenceProfile
                 Resource: '*'
 
-              - Sid: BedrockAgentCoreAccess
+              # AWS 管理の Code Interpreter（apps/chat-agent/src/code-interpreter-tool.ts）
+              - Sid: AgentCoreCodeInterpreter
                 Effect: Allow
                 Action:
-                  - bedrock-agentcore:InvokeRuntime
-                  - bedrock-agentcore:InvokeGateway
-                Resource: '*'
+                  - bedrock-agentcore:StartCodeInterpreterSession
+                  - bedrock-agentcore:InvokeCodeInterpreter
+                  - bedrock-agentcore:StopCodeInterpreterSession
+                Resource: !Sub 'arn:${AWS::Partition}:bedrock-agentcore:*:aws:code-interpreter/aws.codeinterpreter.v1'
 
-              - Sid: DataZoneManagement
+              # ReadOnlyAccess に含まれない DataZone の読み取り
+              - Sid: DataZoneConnections
                 Effect: Allow
                 Action:
-                  - datazone:GetDomain
-                  - datazone:ListDomains
-                  - datazone:ListProjects
-                  - datazone:GetEnvironment
-                  - datazone:GetEnvironmentCredentials
-                  - datazone:ListEnvironments
                   - datazone:GetConnection
                   - datazone:ListConnections
-                  - datazone:ListProjectMemberships
+                Resource: '*'
+
+              # 調査クエリではなく credential vending。環境ユーザーロールの一時認証情報を返す。
+              # アプリは DomainExecutionRole の認証情報で呼ぶ（packages/datazone-auth/src/project-credentials.ts）ので
+              # このロールでは使わないが、運用での手動調査用に意図して残す。resource-level 制御は無い。
+              - Sid: DataZoneEnvironmentCredentials
+                Effect: Allow
+                Action:
+                  - datazone:GetEnvironmentCredentials
                 Resource: '*'
 
 Outputs:
