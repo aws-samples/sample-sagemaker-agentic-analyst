@@ -119,6 +119,24 @@ webappはCloudFront経由のLambda上でLambda Web Adapter（レスポンスス�
 
 テストファイルは各アプリ配下に配置: `tests/unit/`, `tests/integration/`
 
+### Gateway Tool Lambda の stg 検証（DataZone API）
+
+デプロイせずに handler をローカルで実行する（`apps/gateway-tools` で。ファイルは生成しない）:
+
+```bash
+source ../../.env.credentials && export AWS_REGION=ap-northeast-1 DATAZONE_DOMAIN_ID=<SMUS_DOMAIN_ID>
+{ ../../node_modules/.bin/esbuild data-catalog/index.ts --bundle --platform=node --format=cjs --log-level=warning
+  echo ';module.exports.handler({"query":"sales"},{clientContext:{custom:{bedrockAgentCoreToolName:"data-catalog___catalog_search",bedrockAgentCorePropagatedHeaders:JSON.stringify({"x-sagemaker-project-id":"<projectId>"})}}}).then(r=>console.log(JSON.stringify(r)))'
+} | node
+```
+
+- 統合テスト（`apps/gateway-tools/tests/integration/`）は `DATAZONE_DOMAIN_ID` / `INTEG_LISTING_ID`（ビジネスメタデータ付きの Glue リスティング）/ `INTEG_PROJECT_ID` を export してから `pnpm run test:integ` で実行する。未設定なら skip される
+- ローカル実行は OperatorRole（ReadOnlyAccess）で DataZone を呼ぶので、Lambda 実行ロールより権限が広い。実行ロールの IAM は `aws iam simulate-principal-policy --policy-source-arn <実行ロールARN> --action-names datazone:<Action>` で別に確認する
+- DataZone は IAM とは別に認可する（IAM で許可されていても "User is not permitted" で拒否される）。新しい DataZone API を使ったら stg にデプロイし、`aws lambda invoke --client-context "$(printf '<上と同じ clientContext の JSON>' | base64 -w0)"` で実行ロールでの結果を確認する
+- `cdk deploy --hotswap` は使えない（OperatorRole にも CDK deploy role にも `lambda:UpdateFunctionCode` がない）
+- subscription\_\* は実ユーザーの IdC Access Token（`x-idc-access-token`）が要り、ブラウザでログインしないと取得できない。request/approve/reject/cancel/revoke は stg のデータを変えるので、実行前にユーザーに確認する
+- カタログのテストデータ（用語集・メタデータフォーム）は OperatorRole では作れない。SMUS に `dg-data-owner` でログインして作る。作成権限はドメインユニットの Authorization policies で付与する（`dg-corp-admin` が操作する）
+
 ## 運用
 
 ### AWS認証情報

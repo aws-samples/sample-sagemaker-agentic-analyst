@@ -37,7 +37,7 @@
   },
   {
     "name": "catalog_detail",
-    "description": "DataZoneカタログのアセット詳細を取得します。catalog_searchで取得したlistingIdを指定すると、テーブルのスキーマ情報（カラム名・データ型）を返します。SQLクエリを組み立てる前に必ずこのツールでスキーマを確認してください。",
+    "description": "DataZoneカタログのアセット詳細を取得します。catalog_searchで取得したlistingIdを指定すると、テーブルのスキーマ情報（カラム名・データ型）に加え、ビジネスメタデータ（リスティングの説明文、ビジネス用語、メタデータフォーム、カラムのビジネス名・説明・用語・フォーム）を返します。SQLクエリを組み立てる前に必ずこのツールでスキーマを確認してください。応答に含まれるglossaryTermIdsやcolumns[].glossaryTerms[].id、formsのキーはcatalog_definitionに渡して用語やフォームの意味を確認できます。",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -51,6 +51,28 @@
         }
       },
       "required": ["listingId"]
+    }
+  },
+  {
+    "name": "catalog_definition",
+    "description": "用語集の用語の定義本文と所属用語集、またはメタデータフォームの各フィールドの意味を取得します。catalog_detailの結果にある用語やフォームの意味を確認したいときに使用してください。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "glossaryTermId": {
+          "type": "string",
+          "description": "用語のID。catalog_detailの結果に含まれるglossaryTermIdsまたはcolumns[].glossaryTerms[].idを使用。formTypeNameとは同時に指定できません"
+        },
+        "formTypeName": {
+          "type": "string",
+          "description": "メタデータフォームのtype名。catalog_detailの結果に含まれるformsのキーを使用。glossaryTermIdとは同時に指定できません"
+        },
+        "formTypeRevision": {
+          "type": "string",
+          "description": "フォームtypeのリビジョン。省略時は最新リビジョンを取得"
+        }
+      },
+      "required": []
     }
   },
   {

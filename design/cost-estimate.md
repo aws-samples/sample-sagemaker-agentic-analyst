@@ -32,12 +32,13 @@
 | 出力トークン/ターン         | 570トークン   | thinking(300) + response/tool_call(270)の3ターン平均                 |
 | ツール呼び出し/チャット     | 2回           | catalog_search(1) + athena_query(1) or s3_read(1)                    |
 | Athenaスキャン量/クエリ     | 5 MB          | 100テーブル × 平均50MB/テーブル、列プルーニング適用                  |
-| DataZone APIコール/チャット | 4件           | SearchListings(1) + ListSubscriptions(1) + GetListing(2)             |
+| DataZone APIコール/チャット | 4件 + α       | SearchListings(1) + ListSubscriptions(1) + GetListing(2) + α         |
 
 **導出根拠**:
 
 - システムプロンプト: 実測2,145文字 ≈ 1,000トークン（日本語混在）
 - ツール定義: MCP 4ツール + code_interpreter ≈ 2,000トークン（JSON Schema）
+- α: catalog_detail 1回あたり BatchGetAttributesMetadata ceil(カラム数/5) 件、catalog_definition 1回あたり GetGlossaryTerm + GetGlossary または GetFormType（ADR 0002）。下の月額試算には含めていない
 - 会話コンテキスト: ターンごとに積み上がる履歴の3ターン平均。Turn1: 100, Turn2: 1,600, Turn3: 3,100 → 平均1,600
 - 出力: Turn1: thinking(300)+tool_call(50)=350, Turn2: 350, Turn3: thinking(500)+response(500)=1,000 → 平均570
 - DataZone API使用量パターン: 開発環境の実測でDataZone APIの課金リクエスト数・コンピュートユニット消費量を観測し、定常運用時の水準を推定

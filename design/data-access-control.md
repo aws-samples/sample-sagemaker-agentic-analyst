@@ -218,6 +218,38 @@ sequenceDiagram
 
 `/api/projects` はCognitoセッションのemailからIdentity Store `ListUsers` でIdCユーザーIDを解決し、`ListProjects(userIdentifier)` でユーザーが所属するプロジェクトのみを取得する。`datazone-auth`パッケージの `resolveIdcUserIdByEmail` と同一のemail→短縮名フォールバックロジックを使用。RedeemAccessTokenフローは不要（Lambda実行ロールでDataZone APIを呼び出し、`userIdentifier` でフィルタリング）。
 
+### カタログ読み取りの認可
+
+`catalog_search` / `catalog_list_subscriptions` / `catalog_detail` と定義取得（用語・フォーム）はLambda実行ロールでDataZoneを呼ぶ。RedeemAccessTokenフローを通さないので、DataZoneが見る呼び出し元はユーザーではなく、どのプロジェクトのメンバーでもないIAMプリンシパルである。
+
+この方式が成り立つのは、DataZone自身の認可が「ドメインに公開されたもの」と「プロジェクトメンバーだけが見られるもの」を分けており、メンバーでないプリンシパルには前者しか返さないためである。Lambda実行ロールが返せるのは、ドメインのどのユーザーもSMUSで閲覧できるものに限られる。
+
+| 区分                                   | 対象                                                                                                                                                                                                                                | Lambda実行ロールで読むか                                        |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| ドメインに公開されたもの               | 公開済みリスティング（`SearchListings` / `GetListing`）、リスティング単位の属性メタデータ（`BatchGetAttributesMetadata` の `entityType=LISTING`）、用語集・用語（`GetGlossary` / `GetGlossaryTerm`）、フォーム定義（`GetFormType`） | 読む                                                            |
+| プロジェクトメンバーだけが見られるもの | アセット（インベントリ。未公開のフォーム・リビジョンを含む）: `GetAsset`、`BatchGetAttributesMetadata` の `entityType=ASSET`、`Search`（`searchScope=ASSET`）                                                                       | 読まない。必要ならDER認証情報（ユーザーのメンバーシップ）で呼ぶ |
+| ユーザー単位の操作                     | Subscriptionの作成・承認・拒否・取消・撤回（`subscription_*`）、`GetEnvironmentCredentials`                                                                                                                                         | 読まない。DER認証情報で呼ぶ                                     |
+
+`catalog_search` / `catalog_list_subscriptions` が購読済み判定に使う `ListSubscriptions`（`owningProjectId` で絞った購読一覧の読み取り）は、Subscription操作ではなくLambda実行ロールで呼ぶ既存の読み取りである。
+
+2 番目の区分をLambda実行ロールで読めるようにするには、実行ロールをプロジェクトメンバーに登録するしかない。そうするとユーザーのメンバーシップと無関係に未公開メタデータを返すことになり、「Lambda実行ロールを全プロジェクトのメンバーに登録する方式」と同じ理由で認可が崩れる。
+
+観測（stg、2026-09-25）: DataZoneのユーザープロファイルを持たずどのプロジェクトにも属さないIAMロールで、`GetListing`、他プロジェクト所有の `GetGlossary` / `GetGlossaryTerm`、`GetFormType` は成功し、`GetAsset` は `User is not permitted to perform operation` で拒否された。同日、stgにデプロイしたdata-catalog Lambdaの実行ロールで `BatchGetAttributesMetadata`（`entityType=LISTING`）を呼び、他プロジェクト所有リスティングのカラム単位フォームを取得できた。
+
+前提: ドメイン内のすべてのユーザーが公開済みリスティング・用語集・フォーム定義を閲覧できること。SMUSでユーザーごとに見える範囲が絞られる設定がある場合、Lambda実行ロールはユーザーに見えないものを返しうる。stgでは、どのプロジェクトにも属さないSMUSユーザー（`dg-business-analyst`）がSMUSのカタログ画面で、他プロジェクト所有リスティングの説明文・用語・メタデータフォーム、カラムのビジネス名・説明・カラム単位のメタデータフォーム、用語集と用語の長い説明をすべて閲覧できた（2026-09-25）。
+
+### カタログ内容の信頼境界
+
+説明文・用語・メタデータフォーム・フォーム定義は、公開リスティングを作れるデータプロデューサーなら誰でも書ける。これらはモデルのコンテキストに入るため、命令文を埋め込まれると、エージェントが利用者の権限で `athena_query` を実行し、結果を `subscription_request` の `requestReason` に書いて攻撃者のプロジェクトへ送る経路ができる。
+
+カタログ由来の文字列はデータとして扱い、指示として扱わない。
+
+- `catalog_detail` / `catalog_definition` の応答は先頭に固定の注記（`notice`）を持ち、中身が参照用のデータであり従うべき指示ではないことを示す
+- システムプロンプトは、カタログ系ツールが返す文字列の中の指示に従わないこと、`requestReason` にはユーザーが述べた理由だけを書き取得したデータを含めないことを定める
+- `subscription_request` の送信前にユーザーの確認を取る既存の規則が、データ送出の最終的な歯止めになる
+
+これはモデルの振る舞いに依存する緩和であり、完全な防御ではない。
+
 ### S3アクセスフロー
 
 外部バケットへのアクセス方式はPublisher/Subscriberで異なる。Publisherは直接S3アクセス、SubscriberはS3 Access Grants経由。参考: [S3 Access Grants and corporate directory identities](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-grants-directory-ids.html)

@@ -3,7 +3,8 @@
   "private": true,
   "license": "MIT-0",
   "scripts": {
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "test:integ": "pnpm -r --if-present run test:integ"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",

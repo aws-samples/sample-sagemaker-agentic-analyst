@@ -10,7 +10,8 @@
     "format:ci": "oxfmt --check .",
     "check": "pnpm run lint && pnpm run format",
     "check:ci": "pnpm run lint:ci && pnpm run format:ci",
-    "test:unit": "vitest run tests/unit"
+    "test:unit": "vitest run tests/unit",
+    "test:integ": "vitest run tests/integration"
   },
   "dependencies": {
     "@agentic-analyst/datazone-auth": "workspace:*",
