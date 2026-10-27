@@ -178,6 +178,34 @@ Resources:
                   - glue:GetDataCatalogExportConfiguration
                 Resource: '*'
 
+              # TEMPORARY: IAM-based domain（us-west-2 dzd-csxckp5vtl4ksw）と Glue business context の
+              # 同期検証用の書き込み。検証が終わったらこのコミットを revert して外す。
+              - Sid: TempGlueBusinessContextWrite
+                Effect: Allow
+                Action:
+                  - glue:CreateGlossary
+                  - glue:DeleteGlossary
+                  - glue:CreateGlossaryTerm
+                  - glue:DeleteGlossaryTerm
+                  - glue:AssociateGlossaryTerms
+                  - glue:DisassociateGlossaryTerms
+                  - glue:UpdateAsset
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    aws:RequestedRegion: us-west-2
+
+              - Sid: TempIamDomainCatalogWrite
+                Effect: Allow
+                Action:
+                  - datazone:CreateAssetRevision
+                  - datazone:CreateListingChangeSet
+                  - datazone:CreateGlossary
+                  - datazone:DeleteGlossary
+                  - datazone:CreateGlossaryTerm
+                  - datazone:DeleteGlossaryTerm
+                Resource: !Sub 'arn:${AWS::Partition}:datazone:us-west-2:${AWS::AccountId}:domain/dzd-csxckp5vtl4ksw'
+
               # 調査クエリではなく credential vending。環境ユーザーロールの一時認証情報を返す。
               # アプリは DomainExecutionRole の認証情報で呼ぶ（packages/datazone-auth/src/project-credentials.ts）ので
               # このロールでは使わないが、運用での手動調査用に意図して残す。resource-level 制御は無い。
