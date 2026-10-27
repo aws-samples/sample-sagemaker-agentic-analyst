@@ -204,6 +204,8 @@ Resources:
                   - datazone:DeleteGlossary
                   - datazone:CreateGlossaryTerm
                   - datazone:DeleteGlossaryTerm
+                  # admin portal に IAM ロールでブラウザログインする
+                  - datazone:GetIamPortalLoginUrl
                 Resource: !Sub 'arn:${AWS::Partition}:datazone:us-west-2:${AWS::AccountId}:domain/dzd-csxckp5vtl4ksw'
 
               # 調査クエリではなく credential vending。環境ユーザーロールの一時認証情報を返す。
