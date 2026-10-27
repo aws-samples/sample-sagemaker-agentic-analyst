@@ -158,6 +158,26 @@ Resources:
                   - datazone:BatchGetAttributesMetadata
                 Resource: '*'
 
+              # ReadOnlyAccess に含まれない Glue Data Catalog の business context（Preview）の読み取り。
+              # 用語集・フォーム・アセットの調査用。Service Reference にリソース型と条件キーが未掲載なので Resource は '*'
+              - Sid: GlueBusinessContextRead
+                Effect: Allow
+                Action:
+                  - glue:GetAsset
+                  - glue:SearchAssets
+                  - glue:GetAssetType
+                  - glue:ListAssetTypes
+                  - glue:GetFormType
+                  - glue:ListFormTypes
+                  - glue:GetGlossary
+                  - glue:ListGlossaries
+                  - glue:GetGlossaryTerm
+                  - glue:ListGlossaryTerms
+                  - glue:ListIterableForms
+                  - glue:BatchGetIterableForms
+                  - glue:GetDataCatalogExportConfiguration
+                Resource: '*'
+
               # 調査クエリではなく credential vending。環境ユーザーロールの一時認証情報を返す。
               # アプリは DomainExecutionRole の認証情報で呼ぶ（packages/datazone-auth/src/project-credentials.ts）ので
               # このロールでは使わないが、運用での手動調査用に意図して残す。resource-level 制御は無い。
